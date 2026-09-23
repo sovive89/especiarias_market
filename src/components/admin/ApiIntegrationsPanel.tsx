@@ -7,12 +7,24 @@
  * src/lib/geocoding.ts e src/lib/adminAuth.ts).
  */
 import { useEffect, useState } from "react";
-import { CheckCircle2, CircleDashed, KeyRound, Lock, MapPin, MessageCircle } from "lucide-react";
+import {
+  CheckCircle2,
+  CircleDashed,
+  ExternalLink,
+  KeyRound,
+  Lock,
+  MapPin,
+  MessageCircle,
+} from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { getWhatsAppStatus } from "@/lib/whatsappBot";
 import { getGeocodingStatus } from "@/lib/geocoding";
 import { getAdminGateStatus } from "@/lib/adminAuth";
 import { Badge, Surface } from "@/components/ui";
+
+/** Link direto pras Environment Variables do projeto na Vercel (onde as credenciais são configuradas de verdade). */
+const VERCEL_ENV_VARS_URL =
+  "https://vercel.com/sovive89s-projects/mercado-pronto/settings/environment-variables";
 
 type Status = "checking" | "on" | "off";
 
@@ -28,6 +40,8 @@ interface ApiRow {
   offLabel: string;
   /** Rota interna pra ver mais detalhes ou configurar o que dá pra configurar por aqui. */
   to?: string;
+  /** Link externo (ex.: Environment Variables na Vercel) quando não há tela interna pra abrir. */
+  href?: string;
 }
 
 export function ApiIntegrationsPanel() {
@@ -72,6 +86,7 @@ export function ApiIntegrationsPanel() {
       status: geocoding,
       onLabel: "Configurada",
       offLabel: "Não configurada",
+      href: VERCEL_ENV_VARS_URL,
     },
     {
       key: "admin-gate",
@@ -82,6 +97,7 @@ export function ApiIntegrationsPanel() {
       status: adminGate,
       onLabel: "Protegido",
       offLabel: "Sem senha (aberto)",
+      href: VERCEL_ENV_VARS_URL,
     },
   ];
 
@@ -124,6 +140,16 @@ export function ApiIntegrationsPanel() {
               <Link to={r.to} className="chip shrink-0">
                 Abrir
               </Link>
+            )}
+            {r.href && (
+              <a
+                href={r.href}
+                target="_blank"
+                rel="noreferrer"
+                className="chip shrink-0 inline-flex items-center gap-1"
+              >
+                Configurar <ExternalLink size={12} />
+              </a>
             )}
           </div>
         ))}
