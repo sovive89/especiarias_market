@@ -11,6 +11,7 @@ import { type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { AppProvider } from "../context/AppContext";
+import { CatalogProvider } from "../context/CatalogContext";
 import { StoreShell } from "../components/StoreShell";
 
 function NotFoundComponent() {
@@ -128,11 +129,13 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AppProvider>
-        <StoreShell>
-          <Outlet />
-        </StoreShell>
-      </AppProvider>
+      <CatalogProvider>
+        <AppProvider>
+          <StoreShell>
+            <Outlet />
+          </StoreShell>
+        </AppProvider>
+      </CatalogProvider>
     </QueryClientProvider>
   );
 }

@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Minus, Plus, ShoppingBag } from "lucide-react";
 import { useApp } from "@/context/AppContext";
-import { products, skus } from "@/data/mock";
+import { useCatalog } from "@/context/CatalogContext";
+import { PLACEHOLDER_IMAGE } from "@/lib/image";
 import { Button, Surface } from "@/components/ui";
 export const Route = createFileRoute("/cart")({
   head: () => ({
@@ -18,6 +19,7 @@ export const Route = createFileRoute("/cart")({
 });
 function Cart() {
   const { cart, add, remove, total } = useApp();
+  const { products, skus } = useCatalog();
   return (
     <div className="page-wrap max-w-xl pb-32">
       <span className="eyebrow">Etapa 1 de 4</span>
@@ -40,7 +42,7 @@ function Cart() {
               return (
                 <Surface key={i.skuId} className="flex gap-3">
                   <img
-                    src={p.image}
+                    src={p.image || PLACEHOLDER_IMAGE}
                     alt=""
                     width={816}
                     height={816}

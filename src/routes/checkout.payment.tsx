@@ -2,6 +2,8 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { QrCode, CreditCard, Banknote } from "lucide-react";
 import { useState } from "react";
 import { Button, Surface } from "@/components/ui";
+import { useApp } from "@/context/AppContext";
+import { useCatalog } from "@/context/CatalogContext";
 export const Route = createFileRoute("/checkout/payment")({
   head: () => ({
     meta: [
@@ -24,6 +26,19 @@ const PAYMENT_METHODS = [
 function Page() {
   const [m, setM] = useState<string>("PIX");
   const nav = useNavigate();
+  const { cart, clear } = useApp();
+  const { deductSale } = useCatalog();
+  const [error, setError] = useState("");
+  /** Confirmar o pedido baixa do estoque os insumos de cada item. */
+  const confirm = () => {
+    try {
+      deductSale(cart, `Pedido ${new Date().toLocaleTimeString("pt-BR")}`);
+      clear();
+      nav({ to: "/order-confirmed" });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    }
+  };
   return (
     <div className="page-wrap max-w-xl pb-28">
       <span className="eyebrow">Pagamento simulado</span>
@@ -54,7 +69,10 @@ function Page() {
       <Surface className="mt-4 text-sm text-muted">
         Gateway ainda não conectado. O botão abaixo apenas avança a demonstração.
       </Surface>
-      <Button className="mt-5 w-full" onClick={() => nav({ to: "/order-confirmed" })}>
+      {error && (
+        <Surface className="mt-4 text-sm font-semibold text-warning-foreground">{error}</Surface>
+      )}
+      <Button className="mt-5 w-full" disabled={!cart.length} onClick={confirm}>
         Confirmar pedido
       </Button>
     </div>

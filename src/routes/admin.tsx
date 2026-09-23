@@ -15,13 +15,17 @@ import {
   Search,
   Map,
   MessageCircle,
+  Package,
 } from "lucide-react";
 import { Badge, Button, Surface } from "@/components/ui";
-import { inventory, orders, skus } from "@/data/mock";
+import { orders } from "@/data/mock";
+import { CatalogAdmin } from "@/components/admin/CatalogAdmin";
+import { StockAdmin } from "@/components/admin/StockAdmin";
 /* Cada aba junto com o seu ícone, para os dois nunca ficarem desalinhados. */
 const tabs = [
   { label: "Visão geral", icon: BarChart3 },
   { label: "Pedidos", icon: ClipboardList },
+  { label: "Catálogo", icon: Package },
   { label: "Estoque e CMV", icon: Boxes },
   { label: "Pagamentos", icon: CreditCard },
   { label: "CRM", icon: Users },
@@ -91,7 +95,8 @@ function Admin() {
         <div className="admin-content">
           {tab === "Visão geral" && <Dashboard />}
           {tab === "Pedidos" && <Orders />}
-          {tab === "Estoque e CMV" && <Stock />}
+          {tab === "Catálogo" && <CatalogAdmin />}
+          {tab === "Estoque e CMV" && <StockAdmin />}
           {tab === "Pagamentos" && <Payments />}
           {tab === "CRM" && <CRM />}
           {tab === "Logística" && <Logistics />}
@@ -220,62 +225,6 @@ function Orders({ compact = false }: { compact?: boolean }) {
         </table>
       </div>
     </Surface>
-  );
-}
-function Stock() {
-  return (
-    <>
-      <div className="kpi-grid">
-        <KPI label="Valor em estoque" value="R$ 8.640" delta="+4,2% este mês" />
-        <KPI label="CMV" value="R$ 10.352" delta="56,2% da receita" />
-        <KPI label="Margem bruta" value="R$ 8.068" delta="43,8%" />
-        <KPI label="Alertas" value="1 insumo" delta="Abaixo do mínimo" />
-      </div>
-      <Surface className="mt-4">
-        <p className="section-label">Insumos e consumo</p>
-        <div className="table-scroll mt-3">
-          <table>
-            <thead>
-              <tr>
-                <th>Insumo</th>
-                <th>Estoque</th>
-                <th>Mínimo</th>
-                <th>Custo médio</th>
-                <th>SKUs vinculados</th>
-                <th>Situação</th>
-              </tr>
-            </thead>
-            <tbody>
-              {inventory.map((i) => (
-                <tr key={i.id}>
-                  <td>
-                    <b>{i.name}</b>
-                  </td>
-                  <td>
-                    {i.current} {i.unit}
-                  </td>
-                  <td>
-                    {i.minimum} {i.unit}
-                  </td>
-                  <td>R$ {i.averageCost.toFixed(2).replace(".", ",")}</td>
-                  <td>
-                    {skus
-                      .filter((s) => s.inventoryItemId === i.id)
-                      .map((s) => s.name)
-                      .join(", ")}
-                  </td>
-                  <td>
-                    <Badge tone={i.current < i.minimum ? "warning" : "good"}>
-                      {i.current < i.minimum ? "Repor" : "Saudável"}
-                    </Badge>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Surface>
-    </>
   );
 }
 function Payments() {

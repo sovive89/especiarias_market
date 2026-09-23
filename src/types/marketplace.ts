@@ -26,6 +26,28 @@ export interface InventoryItem {
   minimum: number;
   averageCost: number;
 }
+/**
+ * Registro de tudo que mexe no estoque de um insumo.
+ * quantity é positiva quando entra e negativa quando sai.
+ */
+export type StockMovementType = "entrada" | "ajuste" | "venda";
+export interface StockMovement {
+  id: string;
+  inventoryItemId: string;
+  type: StockMovementType;
+  quantity: number;
+  /** Custo por unidade do insumo; só existe nas entradas (compras). */
+  unitCost?: number;
+  note?: string;
+  createdAt: string;
+}
+/** Uma "foto" completa do catálogo e do estoque. É o que a fonte de dados carrega e salva. */
+export interface CatalogSnapshot {
+  products: BaseProduct[];
+  skus: ProductSKU[];
+  inventory: InventoryItem[];
+  movements: StockMovement[];
+}
 export interface CartItem {
   skuId: string;
   quantity: number;

@@ -1,6 +1,6 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
 import type { CartItem, DeliveryLocation } from "@/types/marketplace";
-import { skus } from "@/data/mock";
+import { useCatalog } from "@/context/CatalogContext";
 type AppState = {
   cart: CartItem[];
   add: (skuId: string) => void;
@@ -23,6 +23,7 @@ const initial: DeliveryLocation = {
   classification: "residência",
 };
 export function AppProvider({ children }: { children: ReactNode }) {
+  const { skus } = useCatalog();
   const [cart, setCart] = useState<CartItem[]>([
     { skuId: "coffee-300", quantity: 1 },
     { skuId: "croissant-1", quantity: 1 },
@@ -58,7 +59,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       location,
       setLocation,
     }),
-    [cart, customer, location],
+    [cart, customer, location, skus],
   );
   return <C.Provider value={value}>{children}</C.Provider>;
 }

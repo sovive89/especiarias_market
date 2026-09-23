@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useApp } from "@/context/AppContext";
-import { operation, products, skus } from "@/data/mock";
+import { operation } from "@/data/mock";
+import { useCatalog } from "@/context/CatalogContext";
 import { Button, Surface } from "@/components/ui";
 export const Route = createFileRoute("/checkout/review")({
   head: () => ({
@@ -17,6 +18,7 @@ export const Route = createFileRoute("/checkout/review")({
 });
 function Page() {
   const { cart, total, customer, location } = useApp();
+  const { products, skus } = useCatalog();
   const final = total + operation.deliveryFee;
   return (
     <div className="page-wrap max-w-xl pb-28">

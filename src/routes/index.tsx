@@ -1,7 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Clock3, ShieldCheck } from "lucide-react";
 import { Button, Surface } from "@/components/ui";
-import { operation, products } from "@/data/mock";
+import { operation } from "@/data/mock";
+import { useCatalog } from "@/context/CatalogContext";
+import { PLACEHOLDER_IMAGE } from "@/lib/image";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -16,6 +18,8 @@ export const Route = createFileRoute("/")({
   component: HomePage,
 });
 function HomePage() {
+  const { products, skus } = useCatalog();
+  const visible = products.filter((p) => skus.some((s) => s.baseProductId === p.id && s.active));
   return (
     <div className="page-wrap pb-28">
       <section className="pt-8 md:pt-14">
@@ -31,10 +35,10 @@ function HomePage() {
         </Link>
       </section>
       <section className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4">
-        {products.map((p, i) => (
+        {visible.map((p, i) => (
           <Link key={p.id} to="/product/$id" params={{ id: p.id }} className="product-tile">
             <img
-              src={p.image}
+              src={p.image || PLACEHOLDER_IMAGE}
               alt={p.name}
               width={816}
               height={816}

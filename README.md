@@ -56,6 +56,19 @@ src/
 O entregador já está preparado para trocar os dados simulados por uma API real.
 Veja [`docs/API.md`](docs/API.md) e o arquivo `.env.example`.
 
+## Catálogo e estoque (painel do gestor)
+
+Em `/admin`, as abas **Catálogo** e **Estoque e CMV**:
+
+- **Catálogo**: criar, editar e excluir produtos com foto (enviada do computador/celular),
+  descrição, categoria e apresentações. Cada apresentação tem preço e aponta para o **insumo**
+  que será descontado na venda (ex.: “Copo 300 ml” desconta 0,018 kg de café).
+- **Estoque**: cadastro de insumos, **entrada** (compra, recalcula o custo médio),
+  **ajuste** por contagem e histórico de movimentações.
+- Confirmar um pedido na loja baixa o estoque dos insumos; produto sem estoque aparece como esgotado.
+
+Sem banco de dados por enquanto: tudo fica salvo no navegador. Veja `docs/API.md` para ligar a um backend.
+
 ## Pendências conhecidas
 
 - As imagens em `src/assets/*.jpg` são **provisórias**. Substitua pelas fotos originais

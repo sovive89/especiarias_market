@@ -26,3 +26,6 @@ dist-ssr
 !.vscode/extensions.json
 .idea
 .DS_Store
+
+# build local do Vercel
+.vercel

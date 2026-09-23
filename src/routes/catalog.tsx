@@ -1,7 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Search, Plus, Minus, LoaderCircle, WifiOff } from "lucide-react";
 import { useMemo, useState } from "react";
-import { products, skus } from "@/data/mock";
+import { useCatalog } from "@/context/CatalogContext";
+import { PLACEHOLDER_IMAGE } from "@/lib/image";
+import { availableUnits } from "@/services/catalog/rules";
 import { useApp } from "@/context/AppContext";
 import { Button, Surface } from "@/components/ui";
 export const Route = createFileRoute("/catalog")({
@@ -22,13 +24,24 @@ function Catalog() {
   const [cat, setCat] = useState("Tudo");
   const [state, setState] = useState<"ready" | "loading" | "error">("ready");
   const { cart, add, remove, total, count } = useApp();
+  const catalog = useCatalog();
+  const { products, skus } = catalog;
+  // Só aparece na loja produto com pelo menos uma apresentação ativa.
+  const sellable = useMemo(
+    () => products.filter((p) => skus.some((s) => s.baseProductId === p.id && s.active)),
+    [products, skus],
+  );
+  const categories = useMemo(
+    () => ["Tudo", ...Array.from(new Set(sellable.map((p) => p.category)))],
+    [sellable],
+  );
   const list = useMemo(
     () =>
-      products.filter(
+      sellable.filter(
         (p) =>
           (cat === "Tudo" || p.category === cat) && p.name.toLowerCase().includes(q.toLowerCase()),
       ),
-    [q, cat],
+    [q, cat, sellable],
   );
   return (
     <div className="page-wrap pb-40">
@@ -42,7 +55,7 @@ function Catalog() {
           />
         </div>
         <div className="hide-scrollbar mt-3 flex gap-2 overflow-x-auto">
-          {["Tudo", "Café", "Padaria", "Frutas", "Bebidas"].map((c) => (
+          {categories.map((c) => (
             <Button
               key={c}
               variant={cat === c ? "primary" : "secondary"}
@@ -89,15 +102,17 @@ function Catalog() {
       ) : (
         <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
           {list.map((p) => {
-            const sku = skus.find((s) => s.id === p.skuIds[0]);
+            const sku = skus.find((s) => s.baseProductId === p.id && s.active);
             if (!sku) return null;
             const qty = cart.find((i) => i.skuId === sku.id)?.quantity || 0;
+            const stock = availableUnits(catalog.snapshot, sku);
+            const soldOut = stock === 0;
             return (
               <Surface key={p.id} className="overflow-hidden p-2.5">
                 <Link to="/product/$id" params={{ id: p.id }}>
                   <img
                     className="aspect-square w-full rounded-xl object-cover"
-                    src={p.image}
+                    src={p.image || PLACEHOLDER_IMAGE}
                     alt={p.name}
                     loading="lazy"
                     width={816}
@@ -106,7 +121,10 @@ function Catalog() {
                   <p className="mt-2 font-mono text-[10px] text-muted">{p.category}</p>
                   <h2 className="min-h-10 text-sm font-bold leading-tight">{p.name}</h2>
                 </Link>
-                <p className="text-xs text-muted">{sku.name}</p>
+                <p className="text-xs text-muted">
+                  {sku.name}
+                  {soldOut && <b className="ml-1 text-warning-foreground">· Esgotado</b>}
+                </p>
                 <div className="mt-2 flex items-center justify-between">
                   <b>R$ {sku.price.toFixed(2).replace(".", ",")}</b>
                   {qty ? (
@@ -115,13 +133,18 @@ function Catalog() {
                         <Minus size={15} />
                       </button>
                       <b>{qty}</b>
-                      <button aria-label="Aumentar" onClick={() => add(sku.id)}>
+                      <button
+                        aria-label="Aumentar"
+                        disabled={qty >= stock}
+                        onClick={() => add(sku.id)}
+                      >
                         <Plus size={15} />
                       </button>
                     </div>
                   ) : (
                     <Button
                       aria-label="Adicionar"
+                      disabled={soldOut}
                       onClick={() => add(sku.id)}
                       className="size-9 min-h-9 p-0"
                     >
