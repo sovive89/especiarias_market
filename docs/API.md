@@ -1,6 +1,6 @@
-# API do app do entregador
+# API da área do entregador (/entregador)
 
-Hoje o app roda **sem banco de dados**: os dados vêm de `src/services/mockApi.ts` e ficam só em memória.
+Hoje o app roda **sem banco de dados**: os dados vêm de `src/driver/services/mockApi.ts` e ficam só em memória.
 
 Quando o backend existir, basta criar um arquivo `.env` (copie o `.env.example`) com:
 
@@ -9,7 +9,7 @@ VITE_DATA_SOURCE=http
 VITE_API_URL=https://sua-api.com
 ```
 
-O app passa a chamar os endpoints abaixo (implementados em `src/services/httpApi.ts`).
+O app passa a chamar os endpoints abaixo (implementados em `src/driver/services/httpApi.ts`).
 Nenhuma tela precisa mudar.
 
 ## Endpoints esperados
@@ -28,7 +28,7 @@ Nenhuma tela precisa mudar.
 | POST | `/deliveries/:id/complete` | — | `Delivery` | "Confirmar entrega" |
 | POST | `/deliveries/:id/problem` | `{ type, description }` | `Delivery` | Registrar problema |
 
-Os formatos (`Driver`, `Route`, `Delivery`, `DeliveryEvent`) estão em `src/types/delivery.ts`.
+Os formatos (`Driver`, `Route`, `Delivery`, `DeliveryEvent`) estão em `src/driver/types/delivery.ts`.
 
 ## Ciclo de vida de uma entrega
 
@@ -41,7 +41,7 @@ READY ────┴─▶ IN_ROUTE ──▶ ARRIVED ──▶ DELIVERED_BY_DR
 
 ## Ainda não preparado (próximas etapas)
 
-- **Login**: `src/lib/api.ts` já tem `setAuthToken()`, mas não existe tela de login.
-- **Rastreamento GPS**: `src/services/trackingService.ts` lê o GPS, mas `sendPosition()` ainda não envia nada
+- **Login**: `src/driver/lib/api.ts` já tem `setAuthToken()`, mas não existe tela de login.
+- **Rastreamento GPS**: `src/driver/services/trackingService.ts` lê o GPS, mas `sendPosition()` ainda não envia nada
   (endpoint previsto: `POST /deliveries/:id/location`).
-- **Notificações**: `src/services/notificationService.ts` é só um esqueleto.
+- **Notificações**: `src/driver/services/notificationService.ts` é só um esqueleto.
