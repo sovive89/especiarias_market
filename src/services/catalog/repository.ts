@@ -29,18 +29,24 @@ export function seedSnapshot(): CatalogSnapshot {
     inventory: structuredClone(inventory),
     movements: [],
     orders: [],
+    drivers: [],
   };
 }
 
 function fromLegacy(): CatalogSnapshot | null {
   const old = normalize(JSON.parse(window.localStorage.getItem(LEGACY_KEY) ?? "null"));
   if (!old) return null;
-  return { ...seedSnapshot(), inventory: old.inventory, movements: old.movements };
+  return {
+    ...seedSnapshot(),
+    inventory: old.inventory,
+    movements: old.movements,
+    drivers: old.drivers,
+  };
 }
 
 /**
- * Aceita dados salvos por versões anteriores (sem "orders") para não apagar o
- * catálogo de quem já cadastrou produtos: o que faltar entra vazio.
+ * Aceita dados salvos por versões anteriores (sem "orders"/"drivers") para não
+ * apagar o catálogo de quem já cadastrou produtos: o que faltar entra vazio.
  */
 function normalize(x: unknown): CatalogSnapshot | null {
   if (!x || typeof x !== "object") return null;
@@ -50,6 +56,7 @@ function normalize(x: unknown): CatalogSnapshot | null {
   return {
     ...(o as unknown as CatalogSnapshot),
     orders: Array.isArray(o["orders"]) ? (o["orders"] as CatalogSnapshot["orders"]) : [],
+    drivers: Array.isArray(o["drivers"]) ? (o["drivers"] as CatalogSnapshot["drivers"]) : [],
   };
 }
 

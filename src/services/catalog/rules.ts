@@ -21,6 +21,7 @@ import type {
   PlacedOrderStatus,
   ProductSKU,
   StockMovement,
+  StoreDriver,
 } from "@/types/marketplace";
 
 export class CatalogError extends Error {}
@@ -424,6 +425,62 @@ export function setOrderStatus(
     ...base,
     orders: base.orders.map((o) => (o.id === id ? { ...o, status, updatedAt: now() } : o)),
   };
+}
+
+/* ───────────── Entregadores ─────────────
+ * Cadastro local de quem entrega, com um PIN de 4 dígitos para abrir o app
+ * do entregador no próprio celular. É controle de acesso por conveniência
+ * (sem servidor) — não substitui autenticação de verdade.
+ */
+
+export type DriverInput = { name: string; phone: string; pin: string };
+
+function validateDriverInput(input: DriverInput) {
+  required(input.name, "Nome");
+  required(input.phone, "Telefone");
+  if (!/^\d{4}$/.test(input.pin.trim())) throw new CatalogError("O PIN precisa ter 4 números.");
+}
+
+export function createDriver(s: CatalogSnapshot, input: DriverInput) {
+  validateDriverInput(input);
+  const driver: StoreDriver = {
+    id: newId("drv"),
+    name: input.name.trim(),
+    phone: input.phone.trim(),
+    pin: input.pin.trim(),
+    active: true,
+    createdAt: now(),
+  };
+  return { snapshot: { ...s, drivers: [driver, ...s.drivers] }, driver };
+}
+
+export function updateDriver(s: CatalogSnapshot, id: string, input: DriverInput): CatalogSnapshot {
+  validateDriverInput(input);
+  if (!s.drivers.some((d) => d.id === id)) throw new CatalogError("Entregador não encontrado.");
+  return {
+    ...s,
+    drivers: s.drivers.map((d) =>
+      d.id === id
+        ? { ...d, name: input.name.trim(), phone: input.phone.trim(), pin: input.pin.trim() }
+        : d,
+    ),
+  };
+}
+
+export function setDriverActive(s: CatalogSnapshot, id: string, active: boolean): CatalogSnapshot {
+  return { ...s, drivers: s.drivers.map((d) => (d.id === id ? { ...d, active } : d)) };
+}
+
+export function deleteDriver(s: CatalogSnapshot, id: string): CatalogSnapshot {
+  return { ...s, drivers: s.drivers.filter((d) => d.id !== id) };
+}
+
+/** Confere telefone + PIN contra os entregadores ativos. Usado na tela de login. */
+export function verifyDriverPin(s: CatalogSnapshot, phone: string, pin: string): StoreDriver {
+  const clean = phone.trim();
+  const driver = s.drivers.find((d) => d.phone === clean && d.active);
+  if (!driver || driver.pin !== pin.trim()) throw new CatalogError("Telefone ou PIN incorretos.");
+  return driver;
 }
 
 /* ───────────── Indicadores ───────────── */

@@ -69,6 +69,9 @@ parceiros dos apps de delivery. Cada tela tem endereço próprio:
   mesmo insumo). Criar, editar, pausar e excluir; o formulário mostra a prévia do card na loja.
 - **Estoque** (`/admin/estoque`): insumos em cards, entrada (compra, recalcula o custo médio),
   contagem e histórico de movimentações.
+- **Entregadores** (`/admin/entregadores`): cadastro de quem entrega (nome, telefone e um PIN de
+  4 dígitos). É o que abre a porta em `/entregador` — sem cadastro, o app pede login e não deixa
+  passar. Pausar um entregador bloqueia o login sem apagar o histórico dele.
 
 Confirmar o pagamento na loja registra o pedido (código `MP-0001`, `MP-0002`…), baixa o estoque e
 abre o WhatsApp da loja com o pedido pronto. Não há cadastro de cliente: só nome e telefone do pedido.

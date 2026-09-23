@@ -34,7 +34,7 @@ function SettingRow({
 }
 
 export function ProfilePage() {
-  const { driver, available } = useDriver();
+  const { driver, available, logout } = useDriver();
   if (!driver) return null;
 
   return (
@@ -59,7 +59,7 @@ export function ProfilePage() {
         </ul>
       </Surface>
 
-      <Button variant="ghost" block className="logout">
+      <Button variant="ghost" block className="logout" onClick={logout}>
         <LogOut size={18} /> Sair
       </Button>
     </>

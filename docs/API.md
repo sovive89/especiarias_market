@@ -91,3 +91,21 @@ Regras (em `src/services/catalog/rules.ts`, para reaproveitar no backend):
 
 Quando existir API, o ideal é expor `POST /orders` e `PATCH /orders/:id` em vez de salvar o snapshot
 inteiro, para dois atendentes não sobrescreverem o trabalho um do outro.
+
+### Entregadores (`drivers` no snapshot)
+
+O `CatalogSnapshot` também inclui `drivers: StoreDriver[]` — quem o gestor cadastrou para entregar
+(`name`, `phone`, `pin`, `active`). É a base do login em `/entregador`: a tela pede telefone + PIN,
+`verifyDriverPin` confere contra os entregadores ativos e, se bater, guarda a sessão em
+`sessionStorage` daquele navegador (`mp:driver-session`) — não é um token de servidor, é só uma
+trava local para separar quem é quem no app; qualquer um com acesso ao devtools consegue contornar.
+
+Regras em `src/services/catalog/rules.ts`: `createDriver`, `updateDriver`, `setDriverActive`,
+`deleteDriver`, `verifyDriverPin`. Quando existir backend de verdade, o PIN deve virar hash (nunca
+texto puro) e o login deve emitir um token/sessão do servidor em vez do `sessionStorage` do
+navegador.
+
+**Limitação conhecida:** as entregas mostradas em `/entregador/*` ainda vêm de dados de exemplo
+(`src/driver/services/mockApi.ts`), não dos pedidos reais do `orders`. O login já identifica
+corretamente quem entrou (nome/telefone aparecem certos no perfil e no topo do app), mas a lista de
+entregas é compartilhada entre qualquer entregador logado até essa integração ser feita.

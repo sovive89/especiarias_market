@@ -18,6 +18,7 @@ import type {
   Driver,
   Route,
 } from "../types/delivery";
+import { useDriverAuth, type DriverIdentity } from "./DriverAuthContext";
 
 /*
  * Contexto = um "estado global" que qualquer tela pode ler com useDriver().
@@ -47,6 +48,7 @@ interface DriverState {
   available: boolean;
   routeStarted: boolean;
   routeFinished: boolean;
+  logout: () => void;
 
   selected: Delivery | undefined;
   sheet: SheetMode | null;
@@ -64,7 +66,15 @@ interface DriverState {
 
 const DriverContext = createContext<DriverState | undefined>(undefined);
 
-export function DriverProvider({ children }: { children: ReactNode }) {
+export function DriverProvider({
+  children,
+  identity,
+}: {
+  children: ReactNode;
+  /** Quem logou (telefone/PIN cadastrados pelo gestor) — substitui o nome/telefone mock. */
+  identity: DriverIdentity;
+}) {
+  const { logout } = useDriverAuth();
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -155,6 +165,14 @@ export function DriverProvider({ children }: { children: ReactNode }) {
     [run, driver],
   );
 
+  // O "backend" simulado tem 1 motorista fixo (dados de rota/entregas de exemplo);
+  // aqui só trocamos o nome/telefone/id exibidos pelo de quem realmente logou.
+  const identifiedDriver = useMemo<Driver | null>(
+    () =>
+      driver ? { ...driver, id: identity.id, name: identity.name, phone: identity.phone } : null,
+    [driver, identity],
+  );
+
   const value = useMemo<DriverState>(() => {
     const open = deliveries.filter(isOpen);
     return {
@@ -162,7 +180,7 @@ export function DriverProvider({ children }: { children: ReactNode }) {
       busy,
       error,
       dismissError: () => setError(null),
-      driver,
+      driver: identifiedDriver,
       route,
       deliveries,
       events,
@@ -178,6 +196,7 @@ export function DriverProvider({ children }: { children: ReactNode }) {
       available: driver?.status !== "OFFLINE",
       routeStarted: route?.status === "IN_PROGRESS",
       routeFinished: route?.status === "COMPLETED",
+      logout,
 
       selected: deliveries.find((d) => d.id === selectedId),
       sheet,
@@ -198,6 +217,7 @@ export function DriverProvider({ children }: { children: ReactNode }) {
     loading,
     busy,
     error,
+    identifiedDriver,
     driver,
     route,
     deliveries,
@@ -209,6 +229,7 @@ export function DriverProvider({ children }: { children: ReactNode }) {
     finishRoute,
     advance,
     reportProblem,
+    logout,
   ]);
 
   return <DriverContext.Provider value={value}>{children}</DriverContext.Provider>;

@@ -1,5 +1,12 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
-import { Boxes, ClipboardList, ExternalLink, LayoutDashboard, UtensilsCrossed } from "lucide-react";
+import {
+  Boxes,
+  ClipboardList,
+  ExternalLink,
+  LayoutDashboard,
+  Truck,
+  UtensilsCrossed,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { useCatalog } from "@/context/CatalogContext";
 
@@ -24,6 +31,7 @@ const NAV = [
   { to: "/admin/pedidos", label: "Pedidos", icon: ClipboardList },
   { to: "/admin/cardapio", label: "Cardápio", icon: UtensilsCrossed },
   { to: "/admin/estoque", label: "Estoque", icon: Boxes },
+  { to: "/admin/entregadores", label: "Entregadores", icon: Truck },
 ] as const;
 
 function AdminLayout() {

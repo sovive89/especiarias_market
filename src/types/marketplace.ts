@@ -68,6 +68,20 @@ export interface PlacedOrder {
   status: PlacedOrderStatus;
   updatedAt: string;
 }
+/**
+ * Entregador cadastrado pelo gestor. O PIN é uma trava de organização local
+ * (guardada no navegador, sem servidor) — não é segurança de verdade: quem abre
+ * o devtools consegue ver. Serve para cada entregador logar no próprio celular
+ * sem precisar de cadastro de usuário/senha completo.
+ */
+export interface StoreDriver {
+  id: string;
+  name: string;
+  phone: string;
+  pin: string;
+  active: boolean;
+  createdAt: string;
+}
 /** Uma "foto" completa do catálogo, do estoque e dos pedidos. É o que a fonte de dados carrega e salva. */
 export interface CatalogSnapshot {
   products: BaseProduct[];
@@ -75,6 +89,7 @@ export interface CatalogSnapshot {
   inventory: InventoryItem[];
   movements: StockMovement[];
   orders: PlacedOrder[];
+  drivers: StoreDriver[];
 }
 export interface CartItem {
   skuId: string;

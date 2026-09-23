@@ -21,6 +21,7 @@ import type {
   CatalogSnapshot,
   PlacedOrder,
   PlacedOrderStatus,
+  StoreDriver,
 } from "@/types/marketplace";
 import * as rules from "@/services/catalog/rules";
 import {
@@ -48,6 +49,12 @@ type CatalogState = CatalogSnapshot & {
   placeOrder: (input: rules.OrderInput) => PlacedOrder;
   setOrderStatus: (id: string, status: PlacedOrderStatus) => void;
   setSkuActive: (id: string, active: boolean) => void;
+  createDriver: (input: rules.DriverInput) => string;
+  updateDriver: (id: string, input: rules.DriverInput) => void;
+  setDriverActive: (id: string, active: boolean) => void;
+  deleteDriver: (id: string) => void;
+  /** Confere telefone + PIN; usado só na tela de login do entregador. */
+  verifyDriverPin: (phone: string, pin: string) => StoreDriver;
   resetDemo: () => void;
   /** Aplica várias regras de uma vez: se qualquer uma recusar, nada é gravado. */
   transaction: (fn: (s: CatalogSnapshot) => CatalogSnapshot) => void;
@@ -146,6 +153,19 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
       },
       setOrderStatus: (id, status) => apply((s) => rules.setOrderStatus(s, id, status)),
       setSkuActive: (id, active) => apply((s) => rules.setSkuActive(s, id, active)),
+      createDriver: (input) => {
+        let createdId = "";
+        apply((s) => {
+          const r = rules.createDriver(s, input);
+          createdId = r.driver.id;
+          return r.snapshot;
+        });
+        return createdId;
+      },
+      updateDriver: (id, input) => apply((s) => rules.updateDriver(s, id, input)),
+      setDriverActive: (id, active) => apply((s) => rules.setDriverActive(s, id, active)),
+      deleteDriver: (id) => apply((s) => rules.deleteDriver(s, id)),
+      verifyDriverPin: (phone, pin) => rules.verifyDriverPin(latest.current, phone, pin),
       transaction: (fn) => apply(fn),
       resetDemo: () => {
         resetLocalCatalog();
