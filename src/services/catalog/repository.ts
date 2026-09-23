@@ -8,7 +8,7 @@
  */
 import { inventory, operation } from "@/data/mock";
 import { STORE_WHATSAPP_NUMBER } from "@/config/store";
-import type { CatalogSnapshot, StoreBranding } from "@/types/marketplace";
+import type { CatalogSnapshot, StoreBranding, WhatsAppBotConfig } from "@/types/marketplace";
 
 export interface CatalogRepository {
   load(): Promise<CatalogSnapshot>;
@@ -24,6 +24,11 @@ export function defaultBranding(): StoreBranding {
     logo: "",
     whatsappNumber: STORE_WHATSAPP_NUMBER,
   };
+}
+
+/** Bot desligado e sem templates até o gestor configurar em /admin/whatsapp. */
+export function defaultWhatsAppBot(): WhatsAppBotConfig {
+  return { enabled: false, templates: {} };
 }
 
 /*
@@ -43,6 +48,7 @@ export function seedSnapshot(): CatalogSnapshot {
     orders: [],
     drivers: [],
     branding: defaultBranding(),
+    whatsappBot: defaultWhatsAppBot(),
   };
 }
 
@@ -71,11 +77,16 @@ function normalize(x: unknown): CatalogSnapshot | null {
     o["branding"] && typeof o["branding"] === "object"
       ? { ...defaultBranding(), ...(o["branding"] as Partial<StoreBranding>) }
       : defaultBranding();
+  const whatsappBot =
+    o["whatsappBot"] && typeof o["whatsappBot"] === "object"
+      ? { ...defaultWhatsAppBot(), ...(o["whatsappBot"] as Partial<WhatsAppBotConfig>) }
+      : defaultWhatsAppBot();
   return {
     ...(o as unknown as CatalogSnapshot),
     orders: Array.isArray(o["orders"]) ? (o["orders"] as CatalogSnapshot["orders"]) : [],
     drivers: Array.isArray(o["drivers"]) ? (o["drivers"] as CatalogSnapshot["drivers"]) : [],
     branding,
+    whatsappBot,
   };
 }
 

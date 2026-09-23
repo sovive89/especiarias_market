@@ -24,6 +24,7 @@ import type {
   PlacedOrderStatus,
   StoreBranding,
   StoreDriver,
+  WhatsAppBotConfig,
 } from "@/types/marketplace";
 import * as rules from "@/services/catalog/rules";
 import {
@@ -60,6 +61,7 @@ type CatalogState = CatalogSnapshot & {
   /** Grava a posição de GPS enviada pelo próprio celular do entregador. */
   updateDriverLocation: (driverId: string, location: DriverGpsPosition) => void;
   updateBranding: (input: StoreBranding) => void;
+  updateWhatsAppBotConfig: (input: WhatsAppBotConfig) => void;
   /** Zera insumos e histórico de movimentação, sem tocar no cardápio/pedidos/entregadores. */
   resetInventory: () => void;
   resetDemo: () => void;
@@ -176,6 +178,7 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
       updateDriverLocation: (driverId, location) =>
         apply((s) => rules.updateDriverLocation(s, driverId, location)),
       updateBranding: (input) => apply((s) => rules.updateBranding(s, input)),
+      updateWhatsAppBotConfig: (input) => apply((s) => rules.updateWhatsAppBotConfig(s, input)),
       resetInventory: () => apply((s) => rules.resetInventory(s)),
       transaction: (fn) => apply(fn),
       resetDemo: () => {

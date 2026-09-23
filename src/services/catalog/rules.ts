@@ -24,6 +24,7 @@ import type {
   StockMovement,
   StoreBranding,
   StoreDriver,
+  WhatsAppBotConfig,
 } from "@/types/marketplace";
 
 export class CatalogError extends Error {}
@@ -523,6 +524,28 @@ export function updateBranding(s: CatalogSnapshot, input: StoreBranding): Catalo
       whatsappNumber: input.whatsappNumber.trim(),
     },
   };
+}
+
+/* ───────────── Bot de notificações do WhatsApp Business ───────────── */
+
+/**
+ * Grava qual template mandar em cada etapa do pedido e se o bot está ligado.
+ * Não mexe em credencial nenhuma — token e phone number id vivem só nas variáveis
+ * de ambiente do servidor (ver docs/WHATSAPP.md), isto aqui é só o "de-para" de templates.
+ */
+export function updateWhatsAppBotConfig(
+  s: CatalogSnapshot,
+  input: WhatsAppBotConfig,
+): CatalogSnapshot {
+  const templates: WhatsAppBotConfig["templates"] = {};
+  for (const [status, tpl] of Object.entries(input.templates)) {
+    if (!tpl) continue;
+    const name = tpl.name.trim();
+    const language = tpl.language.trim();
+    if (!name) continue; // linha em branco: não manda nada nessa etapa
+    templates[status as PlacedOrderStatus] = { name, language: language || "pt_BR" };
+  }
+  return { ...s, whatsappBot: { enabled: input.enabled, templates } };
 }
 
 /* ───────────── Zerar dados ───────────── */

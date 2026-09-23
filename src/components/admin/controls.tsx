@@ -32,6 +32,7 @@ export function TextInput({
   hint,
   inputMode,
   autoFocus,
+  id,
 }: {
   label: string;
   value: string;
@@ -40,11 +41,14 @@ export function TextInput({
   hint?: string;
   inputMode?: "decimal" | "text";
   autoFocus?: boolean;
+  /** Opcional — útil quando há vários campos parecidos na mesma tela (ex.: um por etapa). */
+  id?: string;
 }) {
   return (
     <label className="grid gap-1.5 text-sm font-semibold">
       {label}
       <input
+        id={id}
         className={inputClass}
         value={value}
         placeholder={placeholder}

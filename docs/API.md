@@ -41,10 +41,19 @@ READY ────┴─▶ IN_ROUTE ──▶ ARRIVED ──▶ DELIVERED_BY_DR
 
 ## Ainda não preparado (próximas etapas)
 
-- **Login**: `src/driver/lib/api.ts` já tem `setAuthToken()`, mas não existe tela de login.
-- **Rastreamento GPS**: `src/driver/services/trackingService.ts` lê o GPS, mas `sendPosition()` ainda não envia nada
-  (endpoint previsto: `POST /deliveries/:id/location`).
-- **Notificações**: `src/driver/services/notificationService.ts` é só um esqueleto.
+- **Notificações push para o entregador**: `src/driver/services/notificationService.ts` é só um esqueleto.
+
+## Já preparado, mesmo sem backend
+
+- **Login do entregador**: tela em `/entregador`, com PIN cadastrado em `/admin/entregadores`
+  (guardado no catálogo local, não é autenticação de servidor de verdade).
+- **Rastreamento GPS**: `src/driver/services/trackingService.ts` lê o GPS do próprio celular do
+  entregador (`navigator.geolocation.watchPosition`) e grava a última posição no catálogo local
+  (`DriverContext.tsx`); aparece em `/admin/entregadores`. Não depende de nenhum backend — quando um
+  existir, é só trocar onde a posição é salva.
+- **WhatsApp Business**: ao contrário do resto do app, este módulo *já* usa um backend (mínimo,
+  Vercel Functions) porque o token da Meta não pode ficar no navegador. Ver
+  [`WHATSAPP.md`](WHATSAPP.md).
 
 ---
 

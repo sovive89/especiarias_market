@@ -71,7 +71,14 @@ parceiros dos apps de delivery. Cada tela tem endereço próprio:
   contagem e histórico de movimentações.
 - **Entregadores** (`/admin/entregadores`): cadastro de quem entrega (nome, telefone e um PIN de
   4 dígitos). É o que abre a porta em `/entregador` — sem cadastro, o app pede login e não deixa
-  passar. Pausar um entregador bloqueia o login sem apagar o histórico dele.
+  passar. Pausar um entregador bloqueia o login sem apagar o histórico dele. Enquanto está
+  disponível, o app do entregador compartilha a localização de GPS do próprio celular; aqui aparece
+  um link "Ver no mapa" com a última posição conhecida.
+- **WhatsApp Business** (`/admin/whatsapp`): liga um bot de **notificações automáticas** — avisa o
+  cliente pelo WhatsApp oficial da loja quando o pedido muda de etapa (aceito, saiu para entrega
+  etc.), usando templates aprovados na Meta. Passo a passo completo de configuração (conta Meta,
+  número, templates, variáveis de ambiente) em [`docs/WHATSAPP.md`](docs/WHATSAPP.md). Sem
+  configurar, a tela só mostra "não configurado" e o resto do app funciona normal.
 
 Confirmar o pagamento na loja registra o pedido (código `MP-0001`, `MP-0002`…), baixa o estoque e
 abre o WhatsApp da loja com o pedido pronto. Não há cadastro de cliente: só nome e telefone do pedido.

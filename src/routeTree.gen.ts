@@ -23,6 +23,7 @@ import { Route as AdminConfigRouteImport } from './routes/admin.config'
 import { Route as AdminEntregadoresRouteImport } from './routes/admin.entregadores'
 import { Route as AdminEstoqueRouteImport } from './routes/admin.estoque'
 import { Route as AdminPedidosRouteImport } from './routes/admin.pedidos'
+import { Route as AdminWhatsappRouteImport } from './routes/admin.whatsapp'
 import { Route as CheckoutAddressRouteImport } from './routes/checkout.address'
 import { Route as CheckoutCustomerRouteImport } from './routes/checkout.customer'
 import { Route as CheckoutPaymentRouteImport } from './routes/checkout.payment'
@@ -104,6 +105,11 @@ const AdminPedidosRoute = AdminPedidosRouteImport.update({
   path: '/pedidos',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminWhatsappRoute = AdminWhatsappRouteImport.update({
+  id: '/whatsapp',
+  path: '/whatsapp',
+  getParentRoute: () => AdminRoute,
+} as any)
 const CheckoutAddressRoute = CheckoutAddressRouteImport.update({
   id: '/checkout/address',
   path: '/checkout/address',
@@ -169,6 +175,7 @@ export interface FileRoutesByFullPath {
   '/admin/entregadores': typeof AdminEntregadoresRoute
   '/admin/estoque': typeof AdminEstoqueRoute
   '/admin/pedidos': typeof AdminPedidosRoute
+  '/admin/whatsapp': typeof AdminWhatsappRoute
   '/checkout/address': typeof CheckoutAddressRoute
   '/checkout/customer': typeof CheckoutCustomerRoute
   '/checkout/payment': typeof CheckoutPaymentRoute
@@ -193,6 +200,7 @@ export interface FileRoutesByTo {
   '/admin/entregadores': typeof AdminEntregadoresRoute
   '/admin/estoque': typeof AdminEstoqueRoute
   '/admin/pedidos': typeof AdminPedidosRoute
+  '/admin/whatsapp': typeof AdminWhatsappRoute
   '/checkout/address': typeof CheckoutAddressRoute
   '/checkout/customer': typeof CheckoutCustomerRoute
   '/checkout/payment': typeof CheckoutPaymentRoute
@@ -220,6 +228,7 @@ export interface FileRoutesById {
   '/admin/entregadores': typeof AdminEntregadoresRoute
   '/admin/estoque': typeof AdminEstoqueRoute
   '/admin/pedidos': typeof AdminPedidosRoute
+  '/admin/whatsapp': typeof AdminWhatsappRoute
   '/checkout/address': typeof CheckoutAddressRoute
   '/checkout/customer': typeof CheckoutCustomerRoute
   '/checkout/payment': typeof CheckoutPaymentRoute
@@ -248,6 +257,7 @@ export interface FileRouteTypes {
     | '/admin/entregadores'
     | '/admin/estoque'
     | '/admin/pedidos'
+    | '/admin/whatsapp'
     | '/checkout/address'
     | '/checkout/customer'
     | '/checkout/payment'
@@ -272,6 +282,7 @@ export interface FileRouteTypes {
     | '/admin/entregadores'
     | '/admin/estoque'
     | '/admin/pedidos'
+    | '/admin/whatsapp'
     | '/checkout/address'
     | '/checkout/customer'
     | '/checkout/payment'
@@ -298,6 +309,7 @@ export interface FileRouteTypes {
     | '/admin/entregadores'
     | '/admin/estoque'
     | '/admin/pedidos'
+    | '/admin/whatsapp'
     | '/checkout/address'
     | '/checkout/customer'
     | '/checkout/payment'
@@ -427,6 +439,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminPedidosRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/whatsapp': {
+      id: '/admin/whatsapp'
+      path: '/whatsapp'
+      fullPath: '/admin/whatsapp'
+      preLoaderRoute: typeof AdminWhatsappRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/checkout/address': {
       id: '/checkout/address'
       path: '/checkout/address'
@@ -506,6 +525,7 @@ interface AdminRouteChildren {
   AdminEntregadoresRoute: typeof AdminEntregadoresRoute
   AdminEstoqueRoute: typeof AdminEstoqueRoute
   AdminPedidosRoute: typeof AdminPedidosRoute
+  AdminWhatsappRoute: typeof AdminWhatsappRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
@@ -515,6 +535,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminEntregadoresRoute: AdminEntregadoresRoute,
   AdminEstoqueRoute: AdminEstoqueRoute,
   AdminPedidosRoute: AdminPedidosRoute,
+  AdminWhatsappRoute: AdminWhatsappRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 

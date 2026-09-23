@@ -103,6 +103,25 @@ export interface StoreBranding {
   logo: string;
   whatsappNumber: string;
 }
+/**
+ * Um template aprovado na Meta (Gerenciador de Negócios) para uma etapa do pedido.
+ * O template precisa ter exatamente 2 variáveis de corpo: {{1}} nome do cliente, {{2}} código do pedido.
+ * O nome e o idioma são os mesmos cadastrados na Meta — o app não cria templates, só os usa.
+ */
+export interface WhatsAppTemplate {
+  name: string;
+  language: string;
+}
+/**
+ * Configuração do bot de notificações do WhatsApp Business (mensagens automáticas da loja
+ * para o cliente). As credenciais (token, phone number id) NÃO ficam aqui — moram só em
+ * variáveis de ambiente do servidor (Vercel), por segurança; isto aqui é só o "de-para"
+ * de qual template mandar em cada etapa do pedido, editável pelo gestor.
+ */
+export interface WhatsAppBotConfig {
+  enabled: boolean;
+  templates: Partial<Record<PlacedOrderStatus, WhatsAppTemplate>>;
+}
 /** Uma "foto" completa do catálogo, do estoque e dos pedidos. É o que a fonte de dados carrega e salva. */
 export interface CatalogSnapshot {
   products: BaseProduct[];
@@ -112,6 +131,7 @@ export interface CatalogSnapshot {
   orders: PlacedOrder[];
   drivers: StoreDriver[];
   branding: StoreBranding;
+  whatsappBot: WhatsAppBotConfig;
 }
 export interface CartItem {
   skuId: string;

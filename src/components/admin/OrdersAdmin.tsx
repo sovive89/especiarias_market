@@ -8,9 +8,31 @@ import { ChevronRight, Clock, MapPin, MessageCircle, Phone, X } from "lucide-rea
 import { Button } from "@/components/ui";
 import { useCatalog } from "@/context/CatalogContext";
 import { nextStatus } from "@/services/catalog/rules";
-import type { PlacedOrder, PlacedOrderStatus } from "@/types/marketplace";
+import { sendWhatsAppTemplate } from "@/lib/whatsappBot";
+import type { PlacedOrder, PlacedOrderStatus, WhatsAppBotConfig } from "@/types/marketplace";
 import { brl, ErrorNote } from "./controls";
 import { cn } from "@/lib/utils";
+
+/**
+ * Dispara (sem travar a tela) o template do WhatsApp configurado em /admin/whatsapp para essa
+ * etapa, se o bot estiver ligado. Falha de envio vira só um aviso no console — o pedido já
+ * mudou de status de qualquer jeito, não faz sentido bloquear o gestor por isso.
+ */
+function notifyWhatsApp(bot: WhatsAppBotConfig, order: PlacedOrder, status: PlacedOrderStatus) {
+  if (!bot.enabled) return;
+  const template = bot.templates[status];
+  if (!template) return;
+  sendWhatsAppTemplate({
+    data: {
+      to: order.customer.phone,
+      templateName: template.name,
+      languageCode: template.language,
+      bodyParams: [order.customer.name, order.code],
+    },
+  }).catch((e: unknown) => {
+    console.warn(`WhatsApp: falha ao notificar pedido ${order.code}:`, e);
+  });
+}
 
 export const STATUS_LABEL: Record<PlacedOrderStatus, string> = {
   novo: "Novos",
@@ -49,7 +71,7 @@ function ago(iso: string, now: number) {
 }
 
 export function OrdersAdmin() {
-  const { orders, setOrderStatus } = useCatalog();
+  const { orders, setOrderStatus, whatsappBot } = useCatalog();
   const [tab, setTab] = useState<PlacedOrderStatus>("novo");
   const [showHistory, setShowHistory] = useState(false);
   const [error, setError] = useState("");
@@ -66,6 +88,7 @@ export function OrdersAdmin() {
       return;
     try {
       setOrderStatus(o.id, status);
+      notifyWhatsApp(whatsappBot, o, status);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     }

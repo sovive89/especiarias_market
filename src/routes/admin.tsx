@@ -4,6 +4,7 @@ import {
   ClipboardList,
   ExternalLink,
   LayoutDashboard,
+  MessageCircle,
   Settings,
   Truck,
   UtensilsCrossed,
@@ -37,7 +38,10 @@ const NAV = [
 ] as const;
 
 /** Fora do menu principal (não cabe na barra do celular) mas ainda precisa de título no topo. */
-const EXTRA_TITLES: Record<string, string> = { "/admin/config": "Configuração" };
+const EXTRA_TITLES: Record<string, string> = {
+  "/admin/config": "Configuração",
+  "/admin/whatsapp": "WhatsApp Business",
+};
 
 function AdminLayout() {
   const path = useRouterState({ select: (s) => s.location.pathname.replace(/\/$/, "") });
@@ -83,7 +87,11 @@ function AdminLayout() {
             </Link>
           ))}
         </nav>
-        <Link to="/admin/config" className="gestor-link mt-auto" activeOptions={{ exact: true }}>
+        <Link to="/admin/whatsapp" className="gestor-link mt-auto" activeOptions={{ exact: true }}>
+          <MessageCircle size={19} />
+          WhatsApp Business
+        </Link>
+        <Link to="/admin/config" className="gestor-link" activeOptions={{ exact: true }}>
           <Settings size={19} />
           Configuração
         </Link>
@@ -102,6 +110,13 @@ function AdminLayout() {
             <h1 className="truncate text-xl font-extrabold">{currentTitle}</h1>
           </div>
           <ThemeToggle />
+          <Link
+            to="/admin/whatsapp"
+            aria-label="WhatsApp Business"
+            className="grid size-10 shrink-0 place-items-center rounded-xl bg-muted-surface text-foreground md:hidden"
+          >
+            <MessageCircle size={19} />
+          </Link>
           <Link
             to="/admin/config"
             aria-label="Configuração da loja"
