@@ -4,6 +4,7 @@ import {
   ClipboardList,
   ExternalLink,
   LayoutDashboard,
+  LogOut,
   MessageCircle,
   Settings,
   Truck,
@@ -53,19 +54,18 @@ function useAdminGate() {
   const nav = useNavigate();
   const path = useRouterState({ select: (s) => s.location.href });
   const [ok, setOk] = useState(false);
+  // Só existe "Sair" se houver ADMIN_PASSWORD configurada — sem senha não há sessão pra encerrar.
+  const [protectedGate, setProtectedGate] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       const authedLocally =
         typeof window !== "undefined" && localStorage.getItem(ADMIN_AUTH_STORAGE_KEY) === "1";
-      if (authedLocally) {
-        if (!cancelled) setOk(true);
-        return;
-      }
       const status = await getAdminGateStatus().catch(() => ({ protected: false }));
       if (cancelled) return;
-      if (!status.protected) {
+      setProtectedGate(status.protected);
+      if (authedLocally || !status.protected) {
         setOk(true);
         return;
       }
@@ -77,12 +77,22 @@ function useAdminGate() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return ok;
+  return { ok, protectedGate };
+}
+
+function logout(nav: ReturnType<typeof useNavigate>) {
+  try {
+    localStorage.removeItem(ADMIN_AUTH_STORAGE_KEY);
+  } catch {
+    /* navegador sem storage: segue o redirect mesmo assim */
+  }
+  nav({ to: "/admin/login", search: { redirect: undefined } });
 }
 
 function AdminLayout() {
   const path = useRouterState({ select: (s) => s.location.pathname.replace(/\/$/, "") });
-  const ok = useAdminGate();
+  const nav = useNavigate();
+  const { ok, protectedGate } = useAdminGate();
   const { orders, inventory } = useCatalog();
   const newOrders = orders.filter((o) => o.status === "novo").length;
   const lowStock = inventory.filter((i) => i.current < i.minimum).length;
@@ -140,6 +150,16 @@ function AdminLayout() {
           <ExternalLink size={19} />
           Ver loja
         </a>
+        {protectedGate && (
+          <button
+            type="button"
+            onClick={() => logout(nav)}
+            className="gestor-link w-full text-left text-danger"
+          >
+            <LogOut size={19} />
+            Sair
+          </button>
+        )}
       </aside>
 
       <div className="min-w-0 flex-1">

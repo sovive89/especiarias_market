@@ -1,9 +1,9 @@
 import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { Lock } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, Surface } from "@/components/ui";
 import { ErrorNote } from "@/components/admin/controls";
-import { ADMIN_AUTH_STORAGE_KEY, checkAdminPassword } from "@/lib/adminAuth";
+import { ADMIN_AUTH_STORAGE_KEY, checkAdminPassword, getAdminGateStatus } from "@/lib/adminAuth";
 
 /**
  * Tela de senha do painel do gestor. `admin.tsx` manda pra cá (com `?redirect=`) sempre que
@@ -26,6 +26,24 @@ function Page() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  // Só faz sentido pedir senha se ADMIN_PASSWORD estiver configurada no servidor. Sem ela, quem
+  // cair direto em /admin/login (link salvo, digitou a URL) é mandado de volta — não existe
+  // "entrar" no vazio.
+  useEffect(() => {
+    let cancelled = false;
+    getAdminGateStatus()
+      .then((status) => {
+        if (!cancelled && !status.protected) nav({ to: redirect || "/admin", replace: true });
+      })
+      .catch(() => {
+        /* falhou a checagem: deixa a tela de senha normal, não bloqueia o acesso */
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
