@@ -64,6 +64,14 @@ export interface PlacedOrder {
   total: number;
   customer: { name: string; phone: string };
   address: string;
+  /**
+   * Coordenadas do endereço de entrega, resolvidas pela Geocoding API da Google no
+   * momento do pedido. Opcional de propósito — ausente quando a chave da API não
+   * está configurada, o endereço não foi encontrado, ou é um pedido antigo (de antes
+   * desse campo existir). Guardado cru (lat/long), sem endereço formatado nem rota:
+   * é a base para plugar Routes API/otimização de rota depois, sem reescrever nada.
+   */
+  location?: { latitude: number; longitude: number };
   paymentMethod: string;
   status: PlacedOrderStatus;
   updatedAt: string;

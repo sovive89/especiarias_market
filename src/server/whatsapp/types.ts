@@ -83,5 +83,7 @@ export interface PendingWhatsAppOrder {
   total: number;
   customer: { name: string; phone: string };
   address: string;
+  /** Lat/long recebidos pelo botão nativo de localização do WhatsApp — mesmo campo que PlacedOrder.location. */
+  location?: { latitude: number; longitude: number };
   paymentMethod: string;
 }

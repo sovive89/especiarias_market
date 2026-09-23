@@ -5,6 +5,7 @@ import { Button, Surface } from "@/components/ui";
 import { useApp } from "@/context/AppContext";
 import { useCatalog } from "@/context/CatalogContext";
 import { buildWhatsAppOrderLink } from "@/lib/whatsapp";
+import { geocodeAddress } from "@/lib/geocoding";
 export const Route = createFileRoute("/checkout/payment")({
   head: () => ({
     meta: [
@@ -30,14 +31,25 @@ function Page() {
   const { cart, clear, total, customer, location } = useApp();
   const { placeOrder, skus, products, branding } = useCatalog();
   const [error, setError] = useState("");
+  const [confirming, setConfirming] = useState(false);
   /**
-   * Confirmar o pedido: baixa do estoque os insumos, coloca o pedido na fila do
-   * gestor e manda o pedido pronto para o WhatsApp da loja (sem cadastro de cliente).
+   * Confirmar o pedido: tenta resolver o endereço em lat/long (Geocoding — não trava
+   * o pedido se falhar ou não estiver configurado), baixa do estoque os insumos,
+   * coloca o pedido na fila do gestor e manda o pedido pronto para o WhatsApp da loja
+   * (sem cadastro de cliente).
    */
-  const confirm = () => {
+  const confirm = async () => {
+    setConfirming(true);
     try {
       const address = [location.address, location.complement].filter(Boolean).join(", ");
-      const order = placeOrder({ cart, customer, address, paymentMethod: m });
+      const geo = await geocodeAddress({ data: { address } }).catch(() => null);
+      const order = placeOrder({
+        cart,
+        customer,
+        address,
+        ...(geo ? { location: { latitude: geo.latitude, longitude: geo.longitude } } : {}),
+        paymentMethod: m,
+      });
       const link = buildWhatsAppOrderLink({
         orderRef: order.code,
         cart,
@@ -56,6 +68,8 @@ function Page() {
       nav({ to: "/order-confirmed" });
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setConfirming(false);
     }
   };
   return (
@@ -91,8 +105,8 @@ function Page() {
       {error && (
         <Surface className="mt-4 text-sm font-semibold text-warning-foreground">{error}</Surface>
       )}
-      <Button className="mt-5 w-full" disabled={!cart.length} onClick={confirm}>
-        Confirmar pedido
+      <Button className="mt-5 w-full" disabled={!cart.length || confirming} onClick={confirm}>
+        {confirming ? "Confirmando…" : "Confirmar pedido"}
       </Button>
     </div>
   );

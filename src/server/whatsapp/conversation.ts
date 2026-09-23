@@ -225,6 +225,7 @@ async function finalizeOrder(
     total: Math.round(total * 100) / 100,
     customer: { name, phone },
     address: addressLabel,
+    ...(state.location ? { location: state.location } : {}),
     paymentMethod: state.paymentMethod ?? "Não informado",
   };
   await pushPendingOrder(JSON.stringify(order));

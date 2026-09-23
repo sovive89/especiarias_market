@@ -216,7 +216,23 @@ function OrderCard({
       </div>
       {o.address && (
         <p className="flex items-start gap-1.5 text-xs text-muted">
-          <MapPin size={13} className="mt-0.5 shrink-0" /> {o.address}
+          <MapPin size={13} className="mt-0.5 shrink-0" />
+          <span>
+            {o.address}
+            {o.location && (
+              <>
+                {" · "}
+                <a
+                  href={`https://maps.google.com/?q=${o.location.latitude},${o.location.longitude}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold text-primary underline"
+                >
+                  ver no mapa
+                </a>
+              </>
+            )}
+          </span>
         </p>
       )}
       {open && next && (

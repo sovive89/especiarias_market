@@ -335,6 +335,8 @@ export type OrderInput = {
   cart: CartItem[];
   customer: { name: string; phone: string };
   address: string;
+  /** Lat/long resolvidos pela Geocoding API no checkout — opcional, ver PlacedOrder.location. */
+  location?: { latitude: number; longitude: number };
   paymentMethod: string;
 };
 
@@ -374,6 +376,7 @@ export function placeOrder(s: CatalogSnapshot, input: OrderInput) {
     total: round2(items.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0)),
     customer: { name: input.customer.name.trim(), phone: input.customer.phone.trim() },
     address: input.address.trim(),
+    ...(input.location ? { location: input.location } : {}),
     paymentMethod: input.paymentMethod,
     status: "novo",
   };
