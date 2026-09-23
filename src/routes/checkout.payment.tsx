@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button, Surface } from "@/components/ui";
 import { useApp } from "@/context/AppContext";
 import { useCatalog } from "@/context/CatalogContext";
+import { buildWhatsAppOrderLink } from "@/lib/whatsapp";
 export const Route = createFileRoute("/checkout/payment")({
   head: () => ({
     meta: [
@@ -26,13 +27,29 @@ const PAYMENT_METHODS = [
 function Page() {
   const [m, setM] = useState<string>("PIX");
   const nav = useNavigate();
-  const { cart, clear } = useApp();
-  const { deductSale } = useCatalog();
+  const { cart, clear, total, customer, location } = useApp();
+  const { deductSale, skus, products } = useCatalog();
   const [error, setError] = useState("");
-  /** Confirmar o pedido baixa do estoque os insumos de cada item. */
+  /**
+   * Confirmar o pedido baixa do estoque os insumos de cada item e manda o
+   * pedido pronto para o WhatsApp da loja (não guardamos cadastro de cliente).
+   */
   const confirm = () => {
     try {
-      deductSale(cart, `Pedido ${new Date().toLocaleTimeString("pt-BR")}`);
+      const orderRef = `Pedido ${new Date().toLocaleTimeString("pt-BR")}`;
+      deductSale(cart, orderRef);
+      const link = buildWhatsAppOrderLink({
+        orderRef,
+        cart,
+        skus,
+        products,
+        total,
+        customer,
+        address: location.address,
+        paymentMethod: m,
+      });
+      sessionStorage.setItem("mp:last-order-whatsapp", link);
+      window.open(link, "_blank", "noopener,noreferrer");
       clear();
       nav({ to: "/order-confirmed" });
     } catch (e) {

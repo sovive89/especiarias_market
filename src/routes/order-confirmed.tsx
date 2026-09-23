@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Check, Clock3 } from "lucide-react";
+import { Check, Clock3, MessageCircle } from "lucide-react";
 import { Button, Surface } from "@/components/ui";
 export const Route = createFileRoute("/order-confirmed")({
   head: () => ({
@@ -15,6 +15,9 @@ export const Route = createFileRoute("/order-confirmed")({
   component: Page,
 });
 function Page() {
+  // Se o navegador bloqueou o pop-up do WhatsApp na confirmação, o link fica aqui.
+  const lastWhatsAppLink =
+    typeof sessionStorage !== "undefined" ? sessionStorage.getItem("mp:last-order-whatsapp") : null;
   return (
     <div className="page-wrap max-w-xl pb-28 text-center">
       <div className="mx-auto grid size-20 place-items-center rounded-full bg-success-soft text-success">
@@ -36,8 +39,15 @@ function Page() {
           <b>Pagamento confirmado</b>
         </div>
       </Surface>
+      {lastWhatsAppLink && (
+        <a href={lastWhatsAppLink} target="_blank" rel="noopener noreferrer">
+          <Button variant="secondary" className="mt-4 w-full">
+            <MessageCircle size={18} /> Reenviar pedido no WhatsApp
+          </Button>
+        </a>
+      )}
       <Link to="/tracking">
-        <Button className="mt-5 w-full">Acompanhar pedido</Button>
+        <Button className="mt-3 w-full">Acompanhar pedido</Button>
       </Link>
     </div>
   );
