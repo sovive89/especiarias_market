@@ -10,6 +10,7 @@ import { Button, Surface } from "@/components/ui";
 import { useCatalog } from "@/context/CatalogContext";
 import { fileToCompressedDataUrl } from "@/lib/image";
 import type { StoreBranding } from "@/types/marketplace";
+import { ApiIntegrationsPanel } from "./ApiIntegrationsPanel";
 import { ErrorNote, TextInput } from "./controls";
 
 const errorText = (e: unknown) => (e instanceof Error ? e.message : String(e));
@@ -129,6 +130,8 @@ export function ConfigAdmin() {
           <Save size={18} /> Salvar
         </Button>
       </Surface>
+
+      <ApiIntegrationsPanel />
     </div>
   );
 }
