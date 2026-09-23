@@ -24,6 +24,7 @@ import { Route as AdminEntregadoresRouteImport } from './routes/admin.entregador
 import { Route as AdminEstoqueRouteImport } from './routes/admin.estoque'
 import { Route as AdminPedidosRouteImport } from './routes/admin.pedidos'
 import { Route as AdminWhatsappRouteImport } from './routes/admin.whatsapp'
+import { Route as AdminLoginRouteImport } from './routes/admin_.login'
 import { Route as CheckoutAddressRouteImport } from './routes/checkout.address'
 import { Route as CheckoutCustomerRouteImport } from './routes/checkout.customer'
 import { Route as CheckoutPaymentRouteImport } from './routes/checkout.payment'
@@ -110,6 +111,11 @@ const AdminWhatsappRoute = AdminWhatsappRouteImport.update({
   path: '/whatsapp',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminLoginRoute = AdminLoginRouteImport.update({
+  id: '/admin_/login',
+  path: '/admin/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CheckoutAddressRoute = CheckoutAddressRouteImport.update({
   id: '/checkout/address',
   path: '/checkout/address',
@@ -176,6 +182,7 @@ export interface FileRoutesByFullPath {
   '/admin/estoque': typeof AdminEstoqueRoute
   '/admin/pedidos': typeof AdminPedidosRoute
   '/admin/whatsapp': typeof AdminWhatsappRoute
+  '/admin/login': typeof AdminLoginRoute
   '/checkout/address': typeof CheckoutAddressRoute
   '/checkout/customer': typeof CheckoutCustomerRoute
   '/checkout/payment': typeof CheckoutPaymentRoute
@@ -201,6 +208,7 @@ export interface FileRoutesByTo {
   '/admin/estoque': typeof AdminEstoqueRoute
   '/admin/pedidos': typeof AdminPedidosRoute
   '/admin/whatsapp': typeof AdminWhatsappRoute
+  '/admin/login': typeof AdminLoginRoute
   '/checkout/address': typeof CheckoutAddressRoute
   '/checkout/customer': typeof CheckoutCustomerRoute
   '/checkout/payment': typeof CheckoutPaymentRoute
@@ -229,6 +237,7 @@ export interface FileRoutesById {
   '/admin/estoque': typeof AdminEstoqueRoute
   '/admin/pedidos': typeof AdminPedidosRoute
   '/admin/whatsapp': typeof AdminWhatsappRoute
+  '/admin_/login': typeof AdminLoginRoute
   '/checkout/address': typeof CheckoutAddressRoute
   '/checkout/customer': typeof CheckoutCustomerRoute
   '/checkout/payment': typeof CheckoutPaymentRoute
@@ -258,6 +267,7 @@ export interface FileRouteTypes {
     | '/admin/estoque'
     | '/admin/pedidos'
     | '/admin/whatsapp'
+    | '/admin/login'
     | '/checkout/address'
     | '/checkout/customer'
     | '/checkout/payment'
@@ -283,6 +293,7 @@ export interface FileRouteTypes {
     | '/admin/estoque'
     | '/admin/pedidos'
     | '/admin/whatsapp'
+    | '/admin/login'
     | '/checkout/address'
     | '/checkout/customer'
     | '/checkout/payment'
@@ -310,6 +321,7 @@ export interface FileRouteTypes {
     | '/admin/estoque'
     | '/admin/pedidos'
     | '/admin/whatsapp'
+    | '/admin_/login'
     | '/checkout/address'
     | '/checkout/customer'
     | '/checkout/payment'
@@ -332,6 +344,7 @@ export interface RootRouteChildren {
   EntregadorRoute: typeof EntregadorRouteWithChildren
   OrderConfirmedRoute: typeof OrderConfirmedRoute
   TrackingRoute: typeof TrackingRoute
+  AdminLoginRoute: typeof AdminLoginRoute
   CheckoutAddressRoute: typeof CheckoutAddressRoute
   CheckoutCustomerRoute: typeof CheckoutCustomerRoute
   CheckoutPaymentRoute: typeof CheckoutPaymentRoute
@@ -445,6 +458,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/whatsapp'
       preLoaderRoute: typeof AdminWhatsappRouteImport
       parentRoute: typeof AdminRoute
+    }
+    '/admin_/login': {
+      id: '/admin_/login'
+      path: '/admin/login'
+      fullPath: '/admin/login'
+      preLoaderRoute: typeof AdminLoginRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/checkout/address': {
       id: '/checkout/address'
@@ -570,6 +590,7 @@ const rootRouteChildren: RootRouteChildren = {
   EntregadorRoute: EntregadorRouteWithChildren,
   OrderConfirmedRoute: OrderConfirmedRoute,
   TrackingRoute: TrackingRoute,
+  AdminLoginRoute: AdminLoginRoute,
   CheckoutAddressRoute: CheckoutAddressRoute,
   CheckoutCustomerRoute: CheckoutCustomerRoute,
   CheckoutPaymentRoute: CheckoutPaymentRoute,

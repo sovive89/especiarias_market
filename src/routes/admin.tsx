@@ -1,4 +1,4 @@
-import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   Boxes,
   ClipboardList,
@@ -12,6 +12,7 @@ import {
 import { useEffect, useState } from "react";
 import { useCatalog } from "@/context/CatalogContext";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { ADMIN_AUTH_STORAGE_KEY, getAdminGateStatus } from "@/lib/adminAuth";
 
 /*
  * Rota "pai" do painel do gestor. Cada aba é uma rota filha (/admin, /admin/pedidos,
@@ -43,8 +44,45 @@ const EXTRA_TITLES: Record<string, string> = {
   "/admin/whatsapp": "WhatsApp Business",
 };
 
+/**
+ * Trava de senha do painel: enquanto não confirma (via ADMIN_PASSWORD no servidor — ver
+ * src/lib/adminAuth.ts) que o navegador já validou a senha antes, manda pra /admin/login.
+ * Sem senha configurada na Vercel, libera direto (comportamento de sempre).
+ */
+function useAdminGate() {
+  const nav = useNavigate();
+  const path = useRouterState({ select: (s) => s.location.href });
+  const [ok, setOk] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const authedLocally =
+        typeof window !== "undefined" && localStorage.getItem(ADMIN_AUTH_STORAGE_KEY) === "1";
+      if (authedLocally) {
+        if (!cancelled) setOk(true);
+        return;
+      }
+      const status = await getAdminGateStatus().catch(() => ({ protected: false }));
+      if (cancelled) return;
+      if (!status.protected) {
+        setOk(true);
+        return;
+      }
+      nav({ to: "/admin/login", search: { redirect: path } });
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return ok;
+}
+
 function AdminLayout() {
   const path = useRouterState({ select: (s) => s.location.pathname.replace(/\/$/, "") });
+  const ok = useAdminGate();
   const { orders, inventory } = useCatalog();
   const newOrders = orders.filter((o) => o.status === "novo").length;
   const lowStock = inventory.filter((i) => i.current < i.minimum).length;
@@ -60,6 +98,9 @@ function AdminLayout() {
       new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" }),
     );
   }, []);
+
+  // Enquanto confere a senha (ou redireciona pro /admin/login), não desenha nada do gestor.
+  if (!ok) return null;
 
   return (
     <div className="gestor">
