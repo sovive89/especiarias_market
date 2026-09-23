@@ -106,16 +106,12 @@ export async function handleIncomingMessage(msg: IncomingMessage): Promise<void>
     }
     const menuItem = msg.text ? findMenuItem(mirror, msg.text) : undefined;
     if (!menuItem) {
-      await sendText(
-        creds,
-        msg.from,
-        'Não entendi. Responda com o número do item do cardápio, ou "fechar" para finalizar.',
-      );
+      await sendText(creds, msg.from, mirror.messages.itemNaoEncontrado);
       return;
     }
     const sku = mirror.skus.find((s) => s.id === menuItem.skuId);
     if (!sku) {
-      await sendText(creds, msg.from, "Esse item não está mais disponível. Escolha outro número.");
+      await sendText(creds, msg.from, mirror.messages.itemIndisponivel);
       return;
     }
     const existing = state.cart.find((l) => l.skuId === sku.id);
@@ -133,11 +129,7 @@ export async function handleIncomingMessage(msg: IncomingMessage): Promise<void>
 
   if (state.step === "localizacao") {
     if (!msg.location) {
-      await sendText(
-        creds,
-        msg.from,
-        "Preciso da sua localização pelo botão do WhatsApp (clipe 📎 → Localização) para continuar.",
-      );
+      await sendText(creds, msg.from, mirror.messages.localizacaoInvalida);
       return;
     }
     state.location = msg.location;
@@ -159,7 +151,7 @@ export async function handleIncomingMessage(msg: IncomingMessage): Promise<void>
     };
     const chosen = msg.buttonReplyId ? paymentMap[msg.buttonReplyId] : undefined;
     if (!chosen) {
-      await sendText(creds, msg.from, "Escolha uma das opções de pagamento nos botões acima.");
+      await sendText(creds, msg.from, mirror.messages.pagamentoInvalido);
       return;
     }
     state.paymentMethod = chosen;

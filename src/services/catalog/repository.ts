@@ -44,10 +44,19 @@ export function defaultWhatsAppOrdering(): WhatsAppOrderingConfig {
     items: [],
     messages: {
       boasVindas: "Olá! 👋 Aqui está nosso cardápio. Responda com o número do item que quiser.",
-      itemAdicionado: '"{{item}}" adicionado! Quer mais alguma coisa? Envie outro número, ou "fechar" para finalizar.',
-      pedirLocalizacao: "Perfeito! Agora envie sua localização pelo WhatsApp (clipe 📎 → Localização) para a entrega.",
+      itemAdicionado:
+        '"{{item}}" adicionado! Quer mais alguma coisa? Envie outro número, ou "fechar" para finalizar.',
+      itemNaoEncontrado:
+        'Não entendi. Responda com o número do item do cardápio, ou "fechar" para finalizar.',
+      itemIndisponivel: "Esse item não está mais disponível. Escolha outro número.",
+      pedirLocalizacao:
+        "Perfeito! Agora envie sua localização pelo WhatsApp (clipe 📎 → Localização) para a entrega.",
+      localizacaoInvalida:
+        "Preciso da sua localização pelo botão do WhatsApp (clipe 📎 → Localização) para continuar.",
       pedirPagamento: "Última etapa: qual a forma de pagamento?",
-      confirmacaoFinal: "Pedido {{codigo}} confirmado! Total: {{total}}. Já mandamos para a loja preparar. 🎉",
+      pagamentoInvalido: "Escolha uma das opções de pagamento nos botões acima.",
+      confirmacaoFinal:
+        "Pedido {{codigo}} confirmado! Total: {{total}}. Já mandamos para a loja preparar. 🎉",
     },
   };
 }

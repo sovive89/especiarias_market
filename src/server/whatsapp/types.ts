@@ -3,7 +3,7 @@
  * navegador). Os tipos "oficiais" do catálogo (PlacedOrder etc.) continuam em
  * src/types/marketplace.ts — aqui é só o que existe apenas durante a conversa.
  */
-import type { WhatsAppMenuItem } from "@/types/marketplace";
+import type { WhatsAppMenuItem, WhatsAppOrderingMessages } from "@/types/marketplace";
 
 /** Em que ponto da conversa o cliente está. Avança em ordem; "fechando" volta pra "itens" se ele mandar mais um número. */
 export type ConversationStep =
@@ -56,13 +56,7 @@ export interface CatalogMirror {
   enabled: boolean;
   menuImageUrl: string;
   items: WhatsAppMenuItem[];
-  messages: {
-    boasVindas: string;
-    itemAdicionado: string;
-    pedirLocalizacao: string;
-    pedirPagamento: string;
-    confirmacaoFinal: string;
-  };
+  messages: WhatsAppOrderingMessages;
   /** Preço e nome de cada SKU no momento do espelhamento — o bot não acessa o catálogo direto. */
   skus: { id: string; name: string; price: number }[];
   updatedAt: string;

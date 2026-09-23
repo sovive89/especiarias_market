@@ -404,6 +404,26 @@ function OrderingBotAdmin() {
           }
         />
         <TextArea
+          label="Número não reconhecido (respondeu algo fora do cardápio)"
+          value={config.messages.itemNaoEncontrado}
+          onChange={(e) =>
+            setConfig((c) => ({
+              ...c,
+              messages: { ...c.messages, itemNaoEncontrado: e.target.value },
+            }))
+          }
+        />
+        <TextArea
+          label="Item indisponível (número existe, mas saiu do catálogo)"
+          value={config.messages.itemIndisponivel}
+          onChange={(e) =>
+            setConfig((c) => ({
+              ...c,
+              messages: { ...c.messages, itemIndisponivel: e.target.value },
+            }))
+          }
+        />
+        <TextArea
           label="Pedindo a localização"
           value={config.messages.pedirLocalizacao}
           onChange={(e) =>
@@ -414,12 +434,32 @@ function OrderingBotAdmin() {
           }
         />
         <TextArea
+          label="Localização não veio pelo botão nativo (mandou texto, por exemplo)"
+          value={config.messages.localizacaoInvalida}
+          onChange={(e) =>
+            setConfig((c) => ({
+              ...c,
+              messages: { ...c.messages, localizacaoInvalida: e.target.value },
+            }))
+          }
+        />
+        <TextArea
           label="Pedindo a forma de pagamento"
           value={config.messages.pedirPagamento}
           onChange={(e) =>
             setConfig((c) => ({
               ...c,
               messages: { ...c.messages, pedirPagamento: e.target.value },
+            }))
+          }
+        />
+        <TextArea
+          label="Pagamento não escolhido pelos botões"
+          value={config.messages.pagamentoInvalido}
+          onChange={(e) =>
+            setConfig((c) => ({
+              ...c,
+              messages: { ...c.messages, pagamentoInvalido: e.target.value },
             }))
           }
         />

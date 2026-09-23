@@ -149,8 +149,16 @@ export interface WhatsAppMenuItem {
 export interface WhatsAppOrderingMessages {
   boasVindas: string;
   itemAdicionado: string;
+  /** Cliente respondeu um número que não bate com nenhum item do cardápio numerado. */
+  itemNaoEncontrado: string;
+  /** Número bate com um item do cardápio, mas o SKU foi removido/desativado do catálogo. */
+  itemIndisponivel: string;
   pedirLocalizacao: string;
+  /** Chegou na etapa de localização sem mandar o botão nativo do WhatsApp (mandou texto, por ex.). */
+  localizacaoInvalida: string;
   pedirPagamento: string;
+  /** Chegou na etapa de pagamento sem clicar em um dos botões (Pix/Cartão/Dinheiro). */
+  pagamentoInvalido: string;
   confirmacaoFinal: string;
 }
 /** Configuração do pedido conversacional pelo WhatsApp (cliente pede sem abrir o site). */
