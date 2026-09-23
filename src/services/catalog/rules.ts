@@ -16,6 +16,9 @@ import type {
   CartItem,
   CatalogSnapshot,
   InventoryItem,
+  PlacedOrder,
+  PlacedOrderItem,
+  PlacedOrderStatus,
   ProductSKU,
   StockMovement,
 } from "@/types/marketplace";
@@ -42,6 +45,8 @@ export function newId(prefix: string) {
 
 /** Arredonda para 3 casas e evita lixo de ponto flutuante (0.1 + 0.2 = 0.30000000000000004). */
 export const round3 = (n: number) => Math.round(n * 1000) / 1000;
+/** Arredonda dinheiro para centavos. */
+export const round2 = (n: number) => Math.round(n * 100) / 100;
 
 function required(value: string, field: string) {
   if (!value.trim()) throw new CatalogError(`Preencha o campo "${field}".`);
@@ -120,6 +125,12 @@ export function createSku(s: CatalogSnapshot, productId: string, input: SkuInput
 export function updateSku(s: CatalogSnapshot, id: string, input: SkuInput): CatalogSnapshot {
   validateSku(s, input);
   return { ...s, skus: s.skus.map((k) => (k.id === id ? { ...k, ...input } : k)) };
+}
+
+/** Pausa ou reativa o item na loja sem mexer no resto do cadastro. */
+export function setSkuActive(s: CatalogSnapshot, id: string, active: boolean): CatalogSnapshot {
+  if (!s.skus.some((k) => k.id === id)) throw new CatalogError("Item não encontrado.");
+  return { ...s, skus: s.skus.map((k) => (k.id === id ? { ...k, active } : k)) };
 }
 
 export function deleteSku(s: CatalogSnapshot, id: string): CatalogSnapshot {
@@ -310,6 +321,108 @@ export function deductSale(
       need.has(i.id) ? { ...i, current: round3(i.current - (need.get(i.id) ?? 0)) } : i,
     ),
     movements: [...movements, ...s.movements],
+  };
+}
+
+/* ───────────── Pedidos ───────────── */
+
+export type OrderInput = {
+  cart: CartItem[];
+  customer: { name: string; phone: string };
+  address: string;
+  paymentMethod: string;
+};
+
+/** Próximo código sequencial legível: MP-0001, MP-0002… */
+function nextOrderCode(s: CatalogSnapshot) {
+  const max = s.orders.reduce((m, o) => Math.max(m, Number(o.code.replace(/\D/g, "")) || 0), 0);
+  return `MP-${String(max + 1).padStart(4, "0")}`;
+}
+
+/**
+ * Registra um pedido pago: baixa o estoque (recusa se faltar insumo) e coloca o
+ * pedido na fila do gestor como "novo". Nome e preço dos itens são copiados agora.
+ */
+export function placeOrder(s: CatalogSnapshot, input: OrderInput) {
+  if (!input.cart.length) throw new CatalogError("O carrinho está vazio.");
+  const code = nextOrderCode(s);
+  const items: PlacedOrderItem[] = input.cart.map((line) => {
+    const sku = s.skus.find((k) => k.id === line.skuId);
+    if (!sku) throw new CatalogError("Um item do carrinho não existe mais no catálogo.");
+    const product = s.products.find((p) => p.id === sku.baseProductId);
+    return {
+      skuId: sku.id,
+      productName: product?.name ?? sku.name,
+      unit: sku.unit,
+      quantity: line.quantity,
+      unitPrice: sku.price,
+    };
+  });
+  const withStock = deductSale(s, input.cart, `Pedido ${code}`);
+  const createdAt = now();
+  const order: PlacedOrder = {
+    id: newId("ped"),
+    code,
+    createdAt,
+    updatedAt: createdAt,
+    items,
+    total: round2(items.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0)),
+    customer: { name: input.customer.name.trim(), phone: input.customer.phone.trim() },
+    address: input.address.trim(),
+    paymentMethod: input.paymentMethod,
+    status: "novo",
+  };
+  return { snapshot: { ...withStock, orders: [order, ...withStock.orders] }, order };
+}
+
+/** Ordem das etapas; "avançar" leva para a próxima. */
+export const ORDER_FLOW: PlacedOrderStatus[] = ["novo", "preparo", "pronto", "entrega", "entregue"];
+
+export function nextStatus(status: PlacedOrderStatus): PlacedOrderStatus | null {
+  const i = ORDER_FLOW.indexOf(status);
+  return i >= 0 && i < ORDER_FLOW.length - 1 ? (ORDER_FLOW[i + 1] ?? null) : null;
+}
+
+/** Devolve ao estoque o que o pedido tinha baixado (usado no cancelamento). */
+function returnStock(s: CatalogSnapshot, order: PlacedOrder): CatalogSnapshot {
+  const need = consumptionByInventory(
+    s,
+    order.items.map((i) => ({ skuId: i.skuId, quantity: i.quantity })),
+  );
+  const createdAt = now();
+  const movements: StockMovement[] = [...need].map(([inventoryItemId, quantity]) => ({
+    id: newId("mov"),
+    inventoryItemId,
+    type: "estorno",
+    quantity,
+    note: `Cancelado ${order.code}`,
+    createdAt,
+  }));
+  return {
+    ...s,
+    inventory: s.inventory.map((i) =>
+      need.has(i.id) ? { ...i, current: round3(i.current + (need.get(i.id) ?? 0)) } : i,
+    ),
+    movements: [...movements, ...s.movements],
+  };
+}
+
+/** Muda a etapa do pedido. Cancelar devolve os insumos ao estoque; pedido entregue não cancela. */
+export function setOrderStatus(
+  s: CatalogSnapshot,
+  id: string,
+  status: PlacedOrderStatus,
+): CatalogSnapshot {
+  const order = s.orders.find((o) => o.id === id);
+  if (!order) throw new CatalogError("Pedido não encontrado.");
+  if (order.status === status) return s;
+  if (order.status === "cancelado") throw new CatalogError("Este pedido já foi cancelado.");
+  if (status === "cancelado" && order.status === "entregue")
+    throw new CatalogError("Pedido já entregue não pode ser cancelado.");
+  const base = status === "cancelado" ? returnStock(s, order) : s;
+  return {
+    ...base,
+    orders: base.orders.map((o) => (o.id === id ? { ...o, status, updatedAt: now() } : o)),
   };
 }
 

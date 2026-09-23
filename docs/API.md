@@ -76,3 +76,18 @@ Produto (Café coado, foto, descrição, categoria)
 
 Confirmar um pedido registra uma movimentação `venda` e baixa o insumo.
 Entradas (compras) recalculam o custo médio ponderado; ajustes registram a diferença da contagem.
+
+
+### Pedidos (`orders` no snapshot)
+
+O `CatalogSnapshot` agora inclui `orders: PlacedOrder[]`. Cada pedido guarda uma cópia do nome e do
+preço dos itens no momento da compra, o cliente (nome e telefone, sem cadastro), endereço, forma de
+pagamento e `status`: `novo` → `preparo` → `pronto` → `entrega` → `entregue` (ou `cancelado`).
+
+Regras (em `src/services/catalog/rules.ts`, para reaproveitar no backend):
+
+- `placeOrder`: recusa se faltar insumo; baixa o estoque e cria o pedido como `novo`.
+- `setOrderStatus`: cancelar devolve os insumos (movimento `estorno`); pedido entregue não cancela.
+
+Quando existir API, o ideal é expor `POST /orders` e `PATCH /orders/:id` em vez de salvar o snapshot
+inteiro, para dois atendentes não sobrescreverem o trabalho um do outro.

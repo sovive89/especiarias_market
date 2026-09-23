@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Check, Clock3, MessageCircle } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Button, Surface } from "@/components/ui";
 export const Route = createFileRoute("/order-confirmed")({
   head: () => ({
@@ -15,15 +16,24 @@ export const Route = createFileRoute("/order-confirmed")({
   component: Page,
 });
 function Page() {
-  // Se o navegador bloqueou o pop-up do WhatsApp na confirmação, o link fica aqui.
-  const lastWhatsAppLink =
-    typeof sessionStorage !== "undefined" ? sessionStorage.getItem("mp:last-order-whatsapp") : null;
+  // Lido só no navegador, depois de montar (no servidor não existe sessionStorage).
+  // Se o pop-up do WhatsApp foi bloqueado na confirmação, o link fica disponível aqui.
+  const [lastWhatsAppLink, setLink] = useState<string | null>(null);
+  const [code, setCode] = useState("");
+  useEffect(() => {
+    try {
+      setLink(sessionStorage.getItem("mp:last-order-whatsapp"));
+      setCode(sessionStorage.getItem("mp:last-order-code") ?? "");
+    } catch {
+      /* navegador sem storage: segue sem o botão de reenviar */
+    }
+  }, []);
   return (
     <div className="page-wrap max-w-xl pb-28 text-center">
       <div className="mx-auto grid size-20 place-items-center rounded-full bg-success-soft text-success">
         <Check size={38} />
       </div>
-      <span className="eyebrow mt-5 inline-flex">Pedido #MP-2085</span>
+      <span className="eyebrow mt-5 inline-flex">{code ? `Pedido #${code}` : "Pedido"}</span>
       <h1 className="mt-2 text-3xl font-extrabold">Pedido confirmado!</h1>
       <p className="mt-2 text-muted">Já enviamos seu pedido para preparação.</p>
       <Surface className="mt-6 text-left">

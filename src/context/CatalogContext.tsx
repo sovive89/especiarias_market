@@ -16,7 +16,12 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import type { CartItem, CatalogSnapshot } from "@/types/marketplace";
+import type {
+  CartItem,
+  CatalogSnapshot,
+  PlacedOrder,
+  PlacedOrderStatus,
+} from "@/types/marketplace";
 import * as rules from "@/services/catalog/rules";
 import {
   getCatalogRepository,
@@ -39,6 +44,10 @@ type CatalogState = CatalogSnapshot & {
   addStockEntry: (id: string, quantity: number, unitCost: number, note?: string) => void;
   adjustStock: (id: string, counted: number, note?: string) => void;
   deductSale: (cart: CartItem[], orderRef: string) => void;
+  /** Baixa o estoque e registra o pedido; devolve o pedido criado (com código MP-0001…). */
+  placeOrder: (input: rules.OrderInput) => PlacedOrder;
+  setOrderStatus: (id: string, status: PlacedOrderStatus) => void;
+  setSkuActive: (id: string, active: boolean) => void;
   resetDemo: () => void;
   /** Aplica várias regras de uma vez: se qualquer uma recusar, nada é gravado. */
   transaction: (fn: (s: CatalogSnapshot) => CatalogSnapshot) => void;
@@ -124,6 +133,19 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
       addStockEntry: (id, q, cost, note) => apply((s) => rules.addStockEntry(s, id, q, cost, note)),
       adjustStock: (id, counted, note) => apply((s) => rules.adjustStock(s, id, counted, note)),
       deductSale: (cart, ref) => apply((s) => rules.deductSale(s, cart, ref)),
+      placeOrder: (input) => {
+        // apply roda a regra na hora (síncrono); se ela recusar, o erro sobe antes do return.
+        const box: { order?: PlacedOrder } = {};
+        apply((s) => {
+          const r = rules.placeOrder(s, input);
+          box.order = r.order;
+          return r.snapshot;
+        });
+        if (!box.order) throw new rules.CatalogError("Não foi possível registrar o pedido.");
+        return box.order;
+      },
+      setOrderStatus: (id, status) => apply((s) => rules.setOrderStatus(s, id, status)),
+      setSkuActive: (id, active) => apply((s) => rules.setSkuActive(s, id, active)),
       transaction: (fn) => apply(fn),
       resetDemo: () => {
         resetLocalCatalog();

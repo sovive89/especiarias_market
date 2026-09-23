@@ -6,7 +6,7 @@
  * Quando houver backend, basta usar VITE_DATA_SOURCE=http: a versão "http"
  * chama a API (contrato em docs/API.md) e nenhuma tela precisa mudar.
  */
-import { inventory, products, skus } from "@/data/mock";
+import { inventory } from "@/data/mock";
 import type { CatalogSnapshot } from "@/types/marketplace";
 
 export interface CatalogRepository {
@@ -14,21 +14,43 @@ export interface CatalogRepository {
   save(snapshot: CatalogSnapshot): Promise<void>;
 }
 
-const STORAGE_KEY = "mercado-pronto:catalog:v1";
+/*
+ * v2 = cardápio começa zerado. Quem tinha dados na v1 mantém só o estoque
+ * (insumos e histórico); os produtos antigos de exemplo são descartados.
+ */
+const STORAGE_KEY = "mercado-pronto:catalog:v2";
+const LEGACY_KEY = "mercado-pronto:catalog:v1";
 
+/** Ponto de partida: cardápio vazio e os insumos de exemplo no estoque. */
 export function seedSnapshot(): CatalogSnapshot {
   return {
-    products: structuredClone(products),
-    skus: structuredClone(skus),
+    products: [],
+    skus: [],
     inventory: structuredClone(inventory),
     movements: [],
+    orders: [],
   };
 }
 
-function isSnapshot(x: unknown): x is CatalogSnapshot {
-  if (!x || typeof x !== "object") return false;
+function fromLegacy(): CatalogSnapshot | null {
+  const old = normalize(JSON.parse(window.localStorage.getItem(LEGACY_KEY) ?? "null"));
+  if (!old) return null;
+  return { ...seedSnapshot(), inventory: old.inventory, movements: old.movements };
+}
+
+/**
+ * Aceita dados salvos por versões anteriores (sem "orders") para não apagar o
+ * catálogo de quem já cadastrou produtos: o que faltar entra vazio.
+ */
+function normalize(x: unknown): CatalogSnapshot | null {
+  if (!x || typeof x !== "object") return null;
   const o = x as Record<string, unknown>;
-  return ["products", "skus", "inventory", "movements"].every((k) => Array.isArray(o[k]));
+  if (!["products", "skus", "inventory", "movements"].every((k) => Array.isArray(o[k])))
+    return null;
+  return {
+    ...(o as unknown as CatalogSnapshot),
+    orders: Array.isArray(o["orders"]) ? (o["orders"] as CatalogSnapshot["orders"]) : [],
+  };
 }
 
 /** Guarda no navegador. Sobrevive a recarregar a página, mas cada navegador tem a sua cópia. */
@@ -36,8 +58,10 @@ export const localRepository: CatalogRepository = {
   async load() {
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
-      const parsed: unknown = raw ? JSON.parse(raw) : null;
-      if (isSnapshot(parsed)) return parsed;
+      const parsed = normalize(raw ? JSON.parse(raw) : null);
+      if (parsed) return parsed;
+      const migrated = fromLegacy();
+      if (migrated) return migrated;
     } catch {
       /* navegador sem storage (aba anônima, bloqueio): segue com os dados de exemplo */
     }
@@ -57,6 +81,7 @@ export const localRepository: CatalogRepository = {
 export function resetLocalCatalog() {
   try {
     window.localStorage.removeItem(STORAGE_KEY);
+    window.localStorage.removeItem(LEGACY_KEY);
   } catch {
     /* ignora */
   }
@@ -68,7 +93,9 @@ export function httpRepository(baseUrl: string): CatalogRepository {
     async load() {
       const res = await fetch(`${baseUrl}/catalog`);
       if (!res.ok) throw new Error(`Falha ao carregar o catálogo (${res.status}).`);
-      return (await res.json()) as CatalogSnapshot;
+      const data = normalize(await res.json());
+      if (!data) throw new Error("A API devolveu um catálogo em formato inesperado.");
+      return data;
     },
     async save(snapshot) {
       const res = await fetch(`${baseUrl}/catalog`, {

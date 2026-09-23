@@ -34,6 +34,14 @@ function HomePage() {
           </Button>
         </Link>
       </section>
+      {visible.length === 0 && (
+        <Surface className="mt-8 text-center">
+          <b>Cardápio em montagem</b>
+          <p className="mt-1 text-sm text-muted">
+            Os itens aparecem aqui assim que forem cadastrados.
+          </p>
+        </Surface>
+      )}
       <section className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4">
         {visible.map((p, i) => (
           <Link key={p.id} to="/product/$id" params={{ id: p.id }} className="product-tile">

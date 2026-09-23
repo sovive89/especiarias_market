@@ -56,16 +56,22 @@ src/
 O entregador já está preparado para trocar os dados simulados por uma API real.
 Veja [`docs/API.md`](docs/API.md) e o arquivo `.env.example`.
 
-## Catálogo e estoque (painel do gestor)
+## Painel do gestor (`/admin`)
 
-Em `/admin`, as abas **Catálogo** e **Estoque e CMV**:
+Moldura própria (menu lateral no computador, barra inferior no celular), referência: portal de
+parceiros dos apps de delivery. Cada tela tem endereço próprio:
 
-- **Catálogo**: criar, editar e excluir produtos com foto (enviada do computador/celular),
-  descrição, categoria e apresentações. Cada apresentação tem preço e aponta para o **insumo**
-  que será descontado na venda (ex.: “Copo 300 ml” desconta 0,018 kg de café).
-- **Estoque**: cadastro de insumos, **entrada** (compra, recalcula o custo médio),
-  **ajuste** por contagem e histórico de movimentações.
-- Confirmar um pedido na loja baixa o estoque dos insumos; produto sem estoque aparece como esgotado.
+- **Início** (`/admin`): vendas, pedidos e ticket médio do dia, fila atual, insumos para repor e mais vendidos.
+- **Pedidos** (`/admin/pedidos`): colunas Novos → Em preparo → Prontos → Em entrega, com botão para
+  avançar, WhatsApp/ligar para o cliente e cancelar (cancelar **devolve os insumos ao estoque**).
+- **Cardápio** (`/admin/cardapio`): cards por categoria com foto, nome, descrição e **valor por unidade
+  de medida**. Cada item aponta para o **insumo** descontado na venda (vários itens podem usar o
+  mesmo insumo). Criar, editar, pausar e excluir; o formulário mostra a prévia do card na loja.
+- **Estoque** (`/admin/estoque`): insumos em cards, entrada (compra, recalcula o custo médio),
+  contagem e histórico de movimentações.
+
+Confirmar o pagamento na loja registra o pedido (código `MP-0001`, `MP-0002`…), baixa o estoque e
+abre o WhatsApp da loja com o pedido pronto. Não há cadastro de cliente: só nome e telefone do pedido.
 
 Sem banco de dados por enquanto: tudo fica salvo no navegador. Veja `docs/API.md` para ligar a um backend.
 

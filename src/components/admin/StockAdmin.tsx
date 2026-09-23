@@ -7,10 +7,17 @@ import { ArrowDownToLine, History, Pencil, Plus, Scale, Trash2 } from "lucide-re
 import { Badge, Button, Surface } from "@/components/ui";
 import { useCatalog } from "@/context/CatalogContext";
 import { stockValue } from "@/services/catalog/rules";
-import type { InventoryItem } from "@/types/marketplace";
+import type { InventoryItem, StockMovement } from "@/types/marketplace";
 import { brl, ErrorNote, Modal, num, parseNum, TextInput } from "./controls";
 
 const UNITS = ["kg", "g", "L", "ml", "un", "cx", "pct"];
+
+const MOVE_LABEL: Record<StockMovement["type"], string> = {
+  entrada: "entrada",
+  ajuste: "contagem",
+  venda: "venda",
+  estorno: "devolvido (cancelamento)",
+};
 
 const errorText = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
@@ -43,7 +50,7 @@ export function StockAdmin() {
         <Kpi
           label="Insumos"
           value={String(inventory.length)}
-          note={`${skus.length} apresentações ligadas`}
+          note={`${skus.length} itens do cardápio ligados`}
         />
         <Kpi
           label="Abaixo do mínimo"
@@ -71,72 +78,75 @@ export function StockAdmin() {
         {inventory.length === 0 ? (
           <p className="mt-6 text-center text-sm text-muted">Nenhum insumo cadastrado ainda.</p>
         ) : (
-          <div className="table-scroll mt-4">
-            <table>
-              <thead>
-                <tr>
-                  <th>Insumo</th>
-                  <th>Estoque</th>
-                  <th>Mínimo</th>
-                  <th>Custo médio</th>
-                  <th>Usado em</th>
-                  <th>Situação</th>
-                  <th className="text-right">Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {inventory.map((i) => {
-                  const linked = skus.filter((s) => s.inventoryItemId === i.id);
-                  return (
-                    <tr key={i.id}>
-                      <td>
-                        <b>{i.name}</b>
-                      </td>
-                      <td>
-                        {num(i.current)} {i.unit}
-                      </td>
-                      <td>
-                        {num(i.minimum)} {i.unit}
-                      </td>
-                      <td>
-                        {brl(i.averageCost)}/{i.unit}
-                      </td>
-                      <td className="max-w-56 text-xs text-muted">
-                        {linked.length
-                          ? linked
-                              .map(
-                                (s) =>
-                                  `${products.find((p) => p.id === s.baseProductId)?.name ?? "?"} · ${s.name}`,
-                              )
-                              .join(", ")
-                          : "Nenhum produto"}
-                      </td>
-                      <td>
-                        <Badge tone={i.current < i.minimum ? "warning" : "good"}>
-                          {i.current <= 0 ? "Zerado" : i.current < i.minimum ? "Repor" : "Saudável"}
-                        </Badge>
-                      </td>
-                      <td>
-                        <div className="flex justify-end gap-1">
-                          <IconButton label="Entrada de estoque" onClick={() => setEntry(i)}>
-                            <ArrowDownToLine size={16} />
-                          </IconButton>
-                          <IconButton label="Ajustar (contagem)" onClick={() => setAdjust(i)}>
-                            <Scale size={16} />
-                          </IconButton>
-                          <IconButton label="Editar" onClick={() => setEditing(i)}>
-                            <Pencil size={16} />
-                          </IconButton>
-                          <IconButton label="Excluir" onClick={() => remove(i)}>
-                            <Trash2 size={16} />
-                          </IconButton>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+          <div className="mt-4 grid gap-3 lg:grid-cols-2">
+            {inventory.map((i) => {
+              const linked = skus.filter((s) => s.inventoryItemId === i.id);
+              const pct = i.minimum > 0 ? Math.min(100, (i.current / (i.minimum * 2)) * 100) : 100;
+              const status =
+                i.current <= 0 ? "Zerado" : i.current < i.minimum ? "Repor" : "Saudável";
+              return (
+                <article
+                  key={i.id}
+                  className="grid gap-3 rounded-2xl border border-border bg-surface-strong p-3"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <b className="line-clamp-1">{i.name}</b>
+                      <p className="text-xs text-muted">
+                        custo médio {brl(i.averageCost)}/{i.unit}
+                      </p>
+                    </div>
+                    <div className="-mr-1 -mt-1 flex shrink-0">
+                      <IconButton label={`Editar ${i.name}`} onClick={() => setEditing(i)}>
+                        <Pencil size={16} />
+                      </IconButton>
+                      <IconButton label={`Excluir ${i.name}`} onClick={() => remove(i)}>
+                        <Trash2 size={16} />
+                      </IconButton>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex items-baseline justify-between text-sm">
+                      <b className="text-lg">
+                        {num(i.current)} <span className="text-xs text-muted">{i.unit}</span>
+                      </b>
+                      <span className="flex items-center gap-2 text-xs text-muted">
+                        mínimo {num(i.minimum)} {i.unit}
+                        <Badge tone={i.current < i.minimum ? "warning" : "good"}>{status}</Badge>
+                      </span>
+                    </div>
+                    <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-muted-surface">
+                      <div
+                        className={
+                          "h-full rounded-full " +
+                          (i.current < i.minimum ? "bg-warning-foreground" : "bg-primary")
+                        }
+                        style={{ width: `${Math.max(pct, i.current > 0 ? 4 : 0)}%` }}
+                      />
+                    </div>
+                  </div>
+                  <p className="line-clamp-2 text-xs text-muted">
+                    {linked.length
+                      ? `Usado em: ${linked
+                          .map((s) => products.find((p) => p.id === s.baseProductId)?.name ?? "?")
+                          .join(", ")}`
+                      : "Nenhum item do cardápio usa este insumo"}
+                  </p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button className="min-h-9 flex-1 px-3 text-xs" onClick={() => setEntry(i)}>
+                      <ArrowDownToLine size={15} /> Entrada
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      className="min-h-9 flex-1 px-3 text-xs"
+                      onClick={() => setAdjust(i)}
+                    >
+                      <Scale size={15} /> Contagem
+                    </Button>
+                  </div>
+                </article>
+              );
+            })}
           </div>
         )}
       </Surface>
@@ -209,7 +219,7 @@ function MovementHistory() {
                 <span>
                   <b>{item?.name ?? "Insumo removido"}</b>
                   <small className="block text-muted">
-                    {new Date(m.createdAt).toLocaleString("pt-BR")} · {m.type}
+                    {new Date(m.createdAt).toLocaleString("pt-BR")} · {MOVE_LABEL[m.type]}
                     {m.note ? ` · ${m.note}` : ""}
                     {m.unitCost !== undefined ? ` · ${brl(m.unitCost)}/${item?.unit ?? ""}` : ""}
                   </small>

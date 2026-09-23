@@ -28,27 +28,28 @@ function Page() {
   const [m, setM] = useState<string>("PIX");
   const nav = useNavigate();
   const { cart, clear, total, customer, location } = useApp();
-  const { deductSale, skus, products } = useCatalog();
+  const { placeOrder, skus, products } = useCatalog();
   const [error, setError] = useState("");
   /**
-   * Confirmar o pedido baixa do estoque os insumos de cada item e manda o
-   * pedido pronto para o WhatsApp da loja (não guardamos cadastro de cliente).
+   * Confirmar o pedido: baixa do estoque os insumos, coloca o pedido na fila do
+   * gestor e manda o pedido pronto para o WhatsApp da loja (sem cadastro de cliente).
    */
   const confirm = () => {
     try {
-      const orderRef = `Pedido ${new Date().toLocaleTimeString("pt-BR")}`;
-      deductSale(cart, orderRef);
+      const address = [location.address, location.complement].filter(Boolean).join(", ");
+      const order = placeOrder({ cart, customer, address, paymentMethod: m });
       const link = buildWhatsAppOrderLink({
-        orderRef,
+        orderRef: order.code,
         cart,
         skus,
         products,
         total,
         customer,
-        address: location.address,
+        address,
         paymentMethod: m,
       });
       sessionStorage.setItem("mp:last-order-whatsapp", link);
+      sessionStorage.setItem("mp:last-order-code", order.code);
       window.open(link, "_blank", "noopener,noreferrer");
       clear();
       nav({ to: "/order-confirmed" });

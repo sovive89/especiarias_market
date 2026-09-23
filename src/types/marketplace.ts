@@ -30,7 +30,7 @@ export interface InventoryItem {
  * Registro de tudo que mexe no estoque de um insumo.
  * quantity é positiva quando entra e negativa quando sai.
  */
-export type StockMovementType = "entrada" | "ajuste" | "venda";
+export type StockMovementType = "entrada" | "ajuste" | "venda" | "estorno";
 export interface StockMovement {
   id: string;
   inventoryItemId: string;
@@ -41,12 +41,40 @@ export interface StockMovement {
   note?: string;
   createdAt: string;
 }
-/** Uma "foto" completa do catálogo e do estoque. É o que a fonte de dados carrega e salva. */
+/**
+ * Etapas do pedido no painel do gestor (mesma sequência dos apps de delivery):
+ * novo → em preparo → pronto → saiu para entrega → entregue. Cancelado sai da fila.
+ */
+export type PlacedOrderStatus =
+  "novo" | "preparo" | "pronto" | "entrega" | "entregue" | "cancelado";
+/** Linha do pedido com nome e preço copiados no momento da compra (não muda se o produto mudar). */
+export interface PlacedOrderItem {
+  skuId: string;
+  productName: string;
+  unit: string;
+  quantity: number;
+  unitPrice: number;
+}
+/** Pedido real feito pela loja (sem cadastro de cliente: só nome e telefone do pedido). */
+export interface PlacedOrder {
+  id: string;
+  code: string;
+  createdAt: string;
+  items: PlacedOrderItem[];
+  total: number;
+  customer: { name: string; phone: string };
+  address: string;
+  paymentMethod: string;
+  status: PlacedOrderStatus;
+  updatedAt: string;
+}
+/** Uma "foto" completa do catálogo, do estoque e dos pedidos. É o que a fonte de dados carrega e salva. */
 export interface CatalogSnapshot {
   products: BaseProduct[];
   skus: ProductSKU[];
   inventory: InventoryItem[];
   movements: StockMovement[];
+  orders: PlacedOrder[];
 }
 export interface CartItem {
   skuId: string;

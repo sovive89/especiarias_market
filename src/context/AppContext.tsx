@@ -24,11 +24,9 @@ const initial: DeliveryLocation = {
 };
 export function AppProvider({ children }: { children: ReactNode }) {
   const { skus } = useCatalog();
-  const [cart, setCart] = useState<CartItem[]>([
-    { skuId: "coffee-300", quantity: 1 },
-    { skuId: "croissant-1", quantity: 1 },
-  ]);
-  const [customer, setCustomer] = useState({ name: "Marina Costa", phone: "(11) 99912-8044" });
+  // Carrinho e cliente começam vazios: o cardápio é montado pelo gestor e não há cadastro.
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [customer, setCustomer] = useState({ name: "", phone: "" });
   const [location, setLocation] = useState(initial);
   const add = (id: string) =>
     setCart((c) => {

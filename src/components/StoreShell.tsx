@@ -2,11 +2,14 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { ShoppingBag, Home, Package, LayoutDashboard, Truck } from "lucide-react";
 import { useApp } from "@/context/AppContext";
 import { operation } from "@/data/mock";
-/* A área do entregador (/entregador) tem moldura própria, então a loja não desenha cabeçalho nem menu lá. */
+/*
+ * O entregador (/entregador) e o gestor (/admin) têm moldura própria,
+ * então a loja não desenha cabeçalho nem menu nessas áreas.
+ */
 export function StoreShell({ children }: { children: React.ReactNode }) {
   const { count } = useApp();
   const path = useRouterState({ select: (s) => s.location.pathname });
-  if (path.startsWith("/entregador")) return <>{children}</>;
+  if (path.startsWith("/entregador") || path.startsWith("/admin")) return <>{children}</>;
   const checkout = path.includes("checkout") || path === "/cart";
   return (
     <div className="min-h-screen">

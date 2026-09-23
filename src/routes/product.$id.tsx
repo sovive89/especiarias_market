@@ -58,8 +58,19 @@ function ProductPage() {
           <span className="eyebrow">{p.category}</span>
           <h1 className="mt-2 text-3xl font-extrabold">{p.name}</h1>
           <p className="mt-2 text-muted">{p.description}</p>
-          <h2 className="mt-6 text-sm font-bold">Escolha a apresentação</h2>
-          <div className="mt-2 grid gap-2">
+          {variants.length === 1 && sku && (
+            <p className="mt-5 text-2xl font-extrabold">
+              R$ {sku.price.toFixed(2).replace(".", ",")}
+              <span className="ml-1 text-sm font-semibold text-muted">/ {sku.unit}</span>
+              {stock === 0 && (
+                <span className="ml-2 text-sm text-warning-foreground">Esgotado</span>
+              )}
+            </p>
+          )}
+          {variants.length > 1 && (
+            <h2 className="mt-6 text-sm font-bold">Escolha a apresentação</h2>
+          )}
+          <div className={variants.length > 1 ? "mt-2 grid gap-2" : "hidden"}>
             {variants.map((v) => (
               <button
                 key={v.id}
@@ -95,8 +106,7 @@ function ProductPage() {
       <Surface className="mt-6">
         <h2 className="font-bold">Sobre este produto</h2>
         <p className="mt-2 text-sm text-muted">
-          Preparado com ingredientes selecionados. As apresentações compartilham o mesmo insumo no
-          controle de estoque.
+          {p.description || "Preparado com ingredientes selecionados."}
         </p>
       </Surface>
     </div>

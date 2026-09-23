@@ -17,6 +17,10 @@ import { Route as DriverRouteImport } from './routes/driver'
 import { Route as EntregadorRouteImport } from './routes/entregador'
 import { Route as OrderConfirmedRouteImport } from './routes/order-confirmed'
 import { Route as TrackingRouteImport } from './routes/tracking'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminCardapioRouteImport } from './routes/admin.cardapio'
+import { Route as AdminEstoqueRouteImport } from './routes/admin.estoque'
+import { Route as AdminPedidosRouteImport } from './routes/admin.pedidos'
 import { Route as CheckoutAddressRouteImport } from './routes/checkout.address'
 import { Route as CheckoutCustomerRouteImport } from './routes/checkout.customer'
 import { Route as CheckoutPaymentRouteImport } from './routes/checkout.payment'
@@ -67,6 +71,26 @@ const TrackingRoute = TrackingRouteImport.update({
   id: '/tracking',
   path: '/tracking',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCardapioRoute = AdminCardapioRouteImport.update({
+  id: '/cardapio',
+  path: '/cardapio',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminEstoqueRoute = AdminEstoqueRouteImport.update({
+  id: '/estoque',
+  path: '/estoque',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminPedidosRoute = AdminPedidosRouteImport.update({
+  id: '/pedidos',
+  path: '/pedidos',
+  getParentRoute: () => AdminRoute,
 } as any)
 const CheckoutAddressRoute = CheckoutAddressRouteImport.update({
   id: '/checkout/address',
@@ -121,13 +145,16 @@ const ProductIdRoute = ProductIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/cart': typeof CartRoute
   '/catalog': typeof CatalogRoute
   '/driver': typeof DriverRoute
   '/entregador': typeof EntregadorRouteWithChildren
   '/order-confirmed': typeof OrderConfirmedRoute
   '/tracking': typeof TrackingRoute
+  '/admin/cardapio': typeof AdminCardapioRoute
+  '/admin/estoque': typeof AdminEstoqueRoute
+  '/admin/pedidos': typeof AdminPedidosRoute
   '/checkout/address': typeof CheckoutAddressRoute
   '/checkout/customer': typeof CheckoutCustomerRoute
   '/checkout/payment': typeof CheckoutPaymentRoute
@@ -137,16 +164,19 @@ export interface FileRoutesByFullPath {
   '/entregador/perfil': typeof EntregadorPerfilRoute
   '/entregador/rota': typeof EntregadorRotaRoute
   '/product/$id': typeof ProductIdRoute
+  '/admin/': typeof AdminIndexRoute
   '/entregador/': typeof EntregadorIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
   '/cart': typeof CartRoute
   '/catalog': typeof CatalogRoute
   '/driver': typeof DriverRoute
   '/order-confirmed': typeof OrderConfirmedRoute
   '/tracking': typeof TrackingRoute
+  '/admin/cardapio': typeof AdminCardapioRoute
+  '/admin/estoque': typeof AdminEstoqueRoute
+  '/admin/pedidos': typeof AdminPedidosRoute
   '/checkout/address': typeof CheckoutAddressRoute
   '/checkout/customer': typeof CheckoutCustomerRoute
   '/checkout/payment': typeof CheckoutPaymentRoute
@@ -156,18 +186,22 @@ export interface FileRoutesByTo {
   '/entregador/perfil': typeof EntregadorPerfilRoute
   '/entregador/rota': typeof EntregadorRotaRoute
   '/product/$id': typeof ProductIdRoute
+  '/admin': typeof AdminIndexRoute
   '/entregador': typeof EntregadorIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/cart': typeof CartRoute
   '/catalog': typeof CatalogRoute
   '/driver': typeof DriverRoute
   '/entregador': typeof EntregadorRouteWithChildren
   '/order-confirmed': typeof OrderConfirmedRoute
   '/tracking': typeof TrackingRoute
+  '/admin/cardapio': typeof AdminCardapioRoute
+  '/admin/estoque': typeof AdminEstoqueRoute
+  '/admin/pedidos': typeof AdminPedidosRoute
   '/checkout/address': typeof CheckoutAddressRoute
   '/checkout/customer': typeof CheckoutCustomerRoute
   '/checkout/payment': typeof CheckoutPaymentRoute
@@ -177,6 +211,7 @@ export interface FileRoutesById {
   '/entregador/perfil': typeof EntregadorPerfilRoute
   '/entregador/rota': typeof EntregadorRotaRoute
   '/product/$id': typeof ProductIdRoute
+  '/admin/': typeof AdminIndexRoute
   '/entregador/': typeof EntregadorIndexRoute
 }
 export interface FileRouteTypes {
@@ -190,6 +225,9 @@ export interface FileRouteTypes {
     | '/entregador'
     | '/order-confirmed'
     | '/tracking'
+    | '/admin/cardapio'
+    | '/admin/estoque'
+    | '/admin/pedidos'
     | '/checkout/address'
     | '/checkout/customer'
     | '/checkout/payment'
@@ -199,16 +237,19 @@ export interface FileRouteTypes {
     | '/entregador/perfil'
     | '/entregador/rota'
     | '/product/$id'
+    | '/admin/'
     | '/entregador/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/admin'
     | '/cart'
     | '/catalog'
     | '/driver'
     | '/order-confirmed'
     | '/tracking'
+    | '/admin/cardapio'
+    | '/admin/estoque'
+    | '/admin/pedidos'
     | '/checkout/address'
     | '/checkout/customer'
     | '/checkout/payment'
@@ -218,6 +259,7 @@ export interface FileRouteTypes {
     | '/entregador/perfil'
     | '/entregador/rota'
     | '/product/$id'
+    | '/admin'
     | '/entregador'
   id:
     | '__root__'
@@ -229,6 +271,9 @@ export interface FileRouteTypes {
     | '/entregador'
     | '/order-confirmed'
     | '/tracking'
+    | '/admin/cardapio'
+    | '/admin/estoque'
+    | '/admin/pedidos'
     | '/checkout/address'
     | '/checkout/customer'
     | '/checkout/payment'
@@ -238,12 +283,13 @@ export interface FileRouteTypes {
     | '/entregador/perfil'
     | '/entregador/rota'
     | '/product/$id'
+    | '/admin/'
     | '/entregador/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AdminRoute: typeof AdminRoute
+  AdminRoute: typeof AdminRouteWithChildren
   CartRoute: typeof CartRoute
   CatalogRoute: typeof CatalogRoute
   DriverRoute: typeof DriverRoute
@@ -314,6 +360,34 @@ declare module '@tanstack/react-router' {
       fullPath: '/tracking'
       preLoaderRoute: typeof TrackingRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/cardapio': {
+      id: '/admin/cardapio'
+      path: '/cardapio'
+      fullPath: '/admin/cardapio'
+      preLoaderRoute: typeof AdminCardapioRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/estoque': {
+      id: '/admin/estoque'
+      path: '/estoque'
+      fullPath: '/admin/estoque'
+      preLoaderRoute: typeof AdminEstoqueRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/pedidos': {
+      id: '/admin/pedidos'
+      path: '/pedidos'
+      fullPath: '/admin/pedidos'
+      preLoaderRoute: typeof AdminPedidosRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/checkout/address': {
       id: '/checkout/address'
@@ -388,6 +462,22 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AdminRouteChildren {
+  AdminCardapioRoute: typeof AdminCardapioRoute
+  AdminEstoqueRoute: typeof AdminEstoqueRoute
+  AdminPedidosRoute: typeof AdminPedidosRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminCardapioRoute: AdminCardapioRoute,
+  AdminEstoqueRoute: AdminEstoqueRoute,
+  AdminPedidosRoute: AdminPedidosRoute,
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 interface EntregadorRouteChildren {
   EntregadorEntregasRoute: typeof EntregadorEntregasRoute
   EntregadorHistoricoRoute: typeof EntregadorHistoricoRoute
@@ -410,7 +500,7 @@ const EntregadorRouteWithChildren = EntregadorRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AdminRoute: AdminRoute,
+  AdminRoute: AdminRouteWithChildren,
   CartRoute: CartRoute,
   CatalogRoute: CatalogRoute,
   DriverRoute: DriverRoute,
