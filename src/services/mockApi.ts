@@ -8,7 +8,8 @@ const deliveries: Delivery[] = [
 ];
 const route: Route = { id: "route-001", driverId: driver.id, status: "PENDING", totalStops: deliveries.length };
 
-export const mockApi = {\n  getDeliveriesSync() { return deliveries.map(d => ({ ...d })); },
+export const mockApi = {
+  getDeliveriesSync() { return deliveries.map(d => ({ ...d })); },
   async getDriver() { return driver; },
   async getRoute() { return route; },
   async getDeliveries() { return deliveries; },
