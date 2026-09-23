@@ -5,7 +5,6 @@ import {
   PackageCheck, Phone, Route as RouteIcon, Settings, Truck, UserRound, X
 } from "lucide-react";
 import { deliveryService } from "./services/deliveryService";
-import { driverService } from "./services/driverService";
 import { mockApi } from "./services/mockApi";
 import { routeService } from "./services/routeService";
 import type { Delivery, DeliveryProblemType } from "./types/delivery";
