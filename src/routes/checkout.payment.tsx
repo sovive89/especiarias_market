@@ -28,7 +28,7 @@ function Page() {
   const [m, setM] = useState<string>("PIX");
   const nav = useNavigate();
   const { cart, clear, total, customer, location } = useApp();
-  const { placeOrder, skus, products } = useCatalog();
+  const { placeOrder, skus, products, branding } = useCatalog();
   const [error, setError] = useState("");
   /**
    * Confirmar o pedido: baixa do estoque os insumos, coloca o pedido na fila do
@@ -47,6 +47,7 @@ function Page() {
         customer,
         address,
         paymentMethod: m,
+        whatsappNumber: branding.whatsappNumber,
       });
       sessionStorage.setItem("mp:last-order-whatsapp", link);
       sessionStorage.setItem("mp:last-order-code", order.code);

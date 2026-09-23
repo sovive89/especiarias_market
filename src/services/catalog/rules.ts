@@ -21,6 +21,7 @@ import type {
   PlacedOrderStatus,
   ProductSKU,
   StockMovement,
+  StoreBranding,
   StoreDriver,
 } from "@/types/marketplace";
 
@@ -481,6 +482,41 @@ export function verifyDriverPin(s: CatalogSnapshot, phone: string, pin: string):
   const driver = s.drivers.find((d) => d.phone === clean && d.active);
   if (!driver || driver.pin !== pin.trim()) throw new CatalogError("Telefone ou PIN incorretos.");
   return driver;
+}
+
+/* ───────────── Identidade da loja (branding) ───────────── */
+
+export function updateBranding(s: CatalogSnapshot, input: StoreBranding): CatalogSnapshot {
+  required(input.name, "Nome da loja");
+  required(input.message, "Mensagem");
+  required(input.eta, "Tempo de entrega");
+  required(input.whatsappNumber, "WhatsApp");
+  if (!/^\d{10,15}$/.test(input.whatsappNumber.trim()))
+    throw new CatalogError(
+      'WhatsApp precisa ter só números, com DDI e DDD (ex.: "5511999999999").',
+    );
+  return {
+    ...s,
+    branding: {
+      name: input.name.trim(),
+      message: input.message.trim(),
+      eta: input.eta.trim(),
+      logo: input.logo,
+      whatsappNumber: input.whatsappNumber.trim(),
+    },
+  };
+}
+
+/* ───────────── Zerar dados ───────────── */
+
+/**
+ * Zera o estoque (insumos + histórico de movimentações), sem tocar no cardápio
+ * (produtos/SKUs), nos pedidos ou nos entregadores. Como todo SKU aponta para
+ * um insumo, esvaziar o estoque deixa os itens do cardápio sem insumo válido —
+ * é preciso recadastrar os insumos e reapontar os itens depois.
+ */
+export function resetInventory(s: CatalogSnapshot): CatalogSnapshot {
+  return { ...s, inventory: [], movements: [] };
 }
 
 /* ───────────── Indicadores ───────────── */

@@ -6,12 +6,24 @@
  * Quando houver backend, basta usar VITE_DATA_SOURCE=http: a versão "http"
  * chama a API (contrato em docs/API.md) e nenhuma tela precisa mudar.
  */
-import { inventory } from "@/data/mock";
-import type { CatalogSnapshot } from "@/types/marketplace";
+import { inventory, operation } from "@/data/mock";
+import { STORE_WHATSAPP_NUMBER } from "@/config/store";
+import type { CatalogSnapshot, StoreBranding } from "@/types/marketplace";
 
 export interface CatalogRepository {
   load(): Promise<CatalogSnapshot>;
   save(snapshot: CatalogSnapshot): Promise<void>;
+}
+
+/** Identidade padrão da loja até o gestor configurar a própria em /admin/config. */
+export function defaultBranding(): StoreBranding {
+  return {
+    name: operation.name,
+    message: operation.message,
+    eta: operation.eta,
+    logo: "",
+    whatsappNumber: STORE_WHATSAPP_NUMBER,
+  };
 }
 
 /*
@@ -30,6 +42,7 @@ export function seedSnapshot(): CatalogSnapshot {
     movements: [],
     orders: [],
     drivers: [],
+    branding: defaultBranding(),
   };
 }
 
@@ -45,18 +58,24 @@ function fromLegacy(): CatalogSnapshot | null {
 }
 
 /**
- * Aceita dados salvos por versões anteriores (sem "orders"/"drivers") para não
- * apagar o catálogo de quem já cadastrou produtos: o que faltar entra vazio.
+ * Aceita dados salvos por versões anteriores (sem "orders"/"drivers"/"branding")
+ * para não apagar o catálogo de quem já cadastrou produtos: o que faltar entra
+ * com o padrão de fábrica.
  */
 function normalize(x: unknown): CatalogSnapshot | null {
   if (!x || typeof x !== "object") return null;
   const o = x as Record<string, unknown>;
   if (!["products", "skus", "inventory", "movements"].every((k) => Array.isArray(o[k])))
     return null;
+  const branding =
+    o["branding"] && typeof o["branding"] === "object"
+      ? { ...defaultBranding(), ...(o["branding"] as Partial<StoreBranding>) }
+      : defaultBranding();
   return {
     ...(o as unknown as CatalogSnapshot),
     orders: Array.isArray(o["orders"]) ? (o["orders"] as CatalogSnapshot["orders"]) : [],
     drivers: Array.isArray(o["drivers"]) ? (o["drivers"] as CatalogSnapshot["drivers"]) : [],
+    branding,
   };
 }
 

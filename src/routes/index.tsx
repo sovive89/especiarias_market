@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Clock3, ShieldCheck } from "lucide-react";
 import { Button, Surface } from "@/components/ui";
-import { operation } from "@/data/mock";
 import { useCatalog } from "@/context/CatalogContext";
 import { PLACEHOLDER_IMAGE } from "@/lib/image";
 export const Route = createFileRoute("/")({
@@ -18,16 +17,16 @@ export const Route = createFileRoute("/")({
   component: HomePage,
 });
 function HomePage() {
-  const { products, skus } = useCatalog();
+  const { products, skus, branding } = useCatalog();
   const visible = products.filter((p) => skus.some((s) => s.baseProductId === p.id && s.active));
   return (
     <div className="page-wrap pb-28">
       <section className="pt-8 md:pt-14">
         <span className="eyebrow">Aberto agora · entrega hoje</span>
         <h1 className="mt-4 max-w-xl text-4xl font-extrabold leading-tight md:text-6xl">
-          {operation.name}
+          {branding.name}
         </h1>
-        <p className="mt-3 max-w-lg text-lg text-muted">{operation.message}</p>
+        <p className="mt-3 max-w-lg text-lg text-muted">{branding.message}</p>
         <Link to="/catalog" className="mt-7 inline-flex">
           <Button className="min-w-48">
             Ver produtos <ArrowRight size={18} />

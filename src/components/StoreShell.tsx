@@ -1,13 +1,15 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { ShoppingBag, Home, Package, LayoutDashboard, Truck } from "lucide-react";
 import { useApp } from "@/context/AppContext";
-import { operation } from "@/data/mock";
+import { useCatalog } from "@/context/CatalogContext";
+import { ThemeToggle } from "@/components/ThemeToggle";
 /*
  * O entregador (/entregador) e o gestor (/admin) têm moldura própria,
  * então a loja não desenha cabeçalho nem menu nessas áreas.
  */
 export function StoreShell({ children }: { children: React.ReactNode }) {
   const { count } = useApp();
+  const { branding } = useCatalog();
   const path = useRouterState({ select: (s) => s.location.pathname });
   if (path.startsWith("/entregador") || path.startsWith("/admin")) return <>{children}</>;
   const checkout = path.includes("checkout") || path === "/cart";
@@ -17,13 +19,17 @@ export function StoreShell({ children }: { children: React.ReactNode }) {
         <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3">
           <Link
             to="/"
-            className="grid size-10 place-items-center rounded-xl bg-primary font-extrabold text-primary-foreground"
+            className="grid size-10 shrink-0 place-items-center overflow-hidden rounded-xl bg-primary font-extrabold text-primary-foreground"
           >
-            {operation.name.charAt(0)}
+            {branding.logo ? (
+              <img src={branding.logo} alt={branding.name} className="size-full object-cover" />
+            ) : (
+              branding.name.charAt(0)
+            )}
           </Link>
           <div className="min-w-0 flex-1">
-            <p className="font-extrabold leading-none">{operation.name}</p>
-            <p className="font-mono text-[10px] text-muted">entrega em {operation.eta}</p>
+            <p className="truncate font-extrabold leading-none">{branding.name}</p>
+            <p className="font-mono text-[10px] text-muted">entrega em {branding.eta}</p>
           </div>
           <nav className="hidden items-center gap-1 md:flex">
             <Link to="/catalog" className="nav-pill">
@@ -39,6 +45,7 @@ export function StoreShell({ children }: { children: React.ReactNode }) {
               Entregador
             </Link>
           </nav>
+          <ThemeToggle />
           <Link
             to="/cart"
             aria-label="Carrinho"

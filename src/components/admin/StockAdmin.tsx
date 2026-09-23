@@ -3,7 +3,7 @@
  * contagem e histórico de movimentações.
  */
 import { useMemo, useState } from "react";
-import { ArrowDownToLine, History, Pencil, Plus, Scale, Trash2 } from "lucide-react";
+import { ArrowDownToLine, Eraser, History, Pencil, Plus, Scale, Trash2 } from "lucide-react";
 import { Badge, Button, Surface } from "@/components/ui";
 import { useCatalog } from "@/context/CatalogContext";
 import { stockValue } from "@/services/catalog/rules";
@@ -43,6 +43,21 @@ export function StockAdmin() {
     }
   };
 
+  const resetAll = () => {
+    setError("");
+    if (
+      !window.confirm(
+        `Zerar TODO o estoque? Isso apaga os ${inventory.length} insumo${inventory.length === 1 ? "" : "s"} e o histórico de movimentações. O cardápio, os pedidos e os entregadores continuam intactos — mas os itens do cardápio ficam sem insumo até você recadastrar e reapontar.`,
+      )
+    )
+      return;
+    try {
+      catalog.resetInventory();
+    } catch (e) {
+      setError(errorText(e));
+    }
+  };
+
   return (
     <>
       <div className="kpi-grid">
@@ -70,9 +85,16 @@ export function StockAdmin() {
             <p className="section-label">Insumos</p>
             <b>O que é descontado quando um produto é vendido</b>
           </div>
-          <Button onClick={() => setEditing("new")}>
-            <Plus size={18} /> Novo insumo
-          </Button>
+          <div className="flex gap-2">
+            {inventory.length > 0 && (
+              <Button variant="secondary" onClick={resetAll}>
+                <Eraser size={18} /> Zerar estoque
+              </Button>
+            )}
+            <Button onClick={() => setEditing("new")}>
+              <Plus size={18} /> Novo insumo
+            </Button>
+          </div>
         </div>
         <ErrorNote message={error} />
         {inventory.length === 0 ? (

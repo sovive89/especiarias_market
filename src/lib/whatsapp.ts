@@ -1,5 +1,4 @@
 import type { CartItem, ProductSKU, BaseProduct } from "@/types/marketplace";
-import { STORE_WHATSAPP_NUMBER } from "@/config/store";
 
 const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -12,6 +11,8 @@ export interface OrderForWhatsApp {
   customer: { name: string; phone: string };
   address?: string;
   paymentMethod: string;
+  /** Telefone da loja (só números, com DDI+DDD) — vem de branding.whatsappNumber, configurado em /admin/config. */
+  whatsappNumber: string;
 }
 
 /** Monta o texto do pedido no formato que o time recebe pelo WhatsApp. */
@@ -40,5 +41,5 @@ export function buildOrderMessage(o: OrderForWhatsApp) {
 /** Link wa.me para enviar o pedido pronto para a loja (sem precisar de backend). */
 export function buildWhatsAppOrderLink(o: OrderForWhatsApp) {
   const text = encodeURIComponent(buildOrderMessage(o));
-  return `https://wa.me/${STORE_WHATSAPP_NUMBER}?text=${text}`;
+  return `https://wa.me/${o.whatsappNumber}?text=${text}`;
 }

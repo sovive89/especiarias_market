@@ -12,7 +12,23 @@ import { type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { AppProvider } from "../context/AppContext";
 import { CatalogProvider } from "../context/CatalogContext";
+import { ThemeProvider } from "../context/ThemeContext";
 import { StoreShell } from "../components/StoreShell";
+
+/*
+ * Aplica a classe "dark" ANTES do React montar, senão a página nasce clara e
+ * "pisca" para escura um instante depois (flash indesejado). Roda no navegador
+ * só de acordo com o que já está salvo (ou o tema do aparelho, se nunca escolheu).
+ */
+const THEME_SCRIPT = `
+(function () {
+  try {
+    var v = localStorage.getItem("mercado-pronto:theme");
+    var dark = v === "dark" || (v !== "light" && matchMedia("(prefers-color-scheme: dark)").matches);
+    document.documentElement.classList.toggle("dark", dark);
+  } catch (e) {}
+})();
+`;
 
 function NotFoundComponent() {
   return (
@@ -111,10 +127,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 function RootShell({ children }: { children: ReactNode }) {
+  // suppressHydrationWarning: o script abaixo muda a classe "dark" antes do React
+  // montar (para não "piscar" claro→escuro); é esperado o servidor não saber disso.
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" suppressHydrationWarning>
       <head>
         <HeadContent />
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>
       <body>
         {children}
@@ -129,13 +148,15 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <CatalogProvider>
-        <AppProvider>
-          <StoreShell>
-            <Outlet />
-          </StoreShell>
-        </AppProvider>
-      </CatalogProvider>
+      <ThemeProvider>
+        <CatalogProvider>
+          <AppProvider>
+            <StoreShell>
+              <Outlet />
+            </StoreShell>
+          </AppProvider>
+        </CatalogProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

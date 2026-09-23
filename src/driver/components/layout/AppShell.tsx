@@ -1,6 +1,7 @@
 import { AlertTriangle, LoaderCircle, Package, X } from "lucide-react";
 import { Link, Outlet } from "@tanstack/react-router";
-import { operation } from "@/data/mock";
+import { useCatalog } from "@/context/CatalogContext";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { useDriver } from "../../context/DriverContext";
 import { DeliveryDetailSheet } from "../delivery/DeliveryDetailSheet";
 import { ProblemSheet } from "../delivery/ProblemSheet";
@@ -12,6 +13,7 @@ import { NAV_ITEMS } from "./navItems";
  */
 export function AppShell() {
   const { driver, available, stats, selected, sheet, loading, error, dismissError } = useDriver();
+  const { branding } = useCatalog();
 
   return (
     <div className="driver-app">
@@ -19,10 +21,14 @@ export function AppShell() {
         <header className="topbar">
           <div className="topbar__inner">
             <Link to="/entregador" className="logo" aria-label="Início">
-              {operation.name.charAt(0)}
+              {branding.logo ? (
+                <img src={branding.logo} alt={branding.name} />
+              ) : (
+                branding.name.charAt(0)
+              )}
             </Link>
             <div className="topbar__brand">
-              <p>{operation.name}</p>
+              <p>{branding.name}</p>
               <p className="mono muted">
                 entregador ·{" "}
                 <span className={available ? "text-success" : undefined}>
@@ -45,6 +51,7 @@ export function AppShell() {
               ))}
             </nav>
 
+            <ThemeToggle className="!size-9" />
             <Link
               to="/entregador/entregas"
               className="topbar__counter"

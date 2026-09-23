@@ -82,6 +82,18 @@ export interface StoreDriver {
   active: boolean;
   createdAt: string;
 }
+/**
+ * Identidade da loja no PWA: nome, mensagem, tempo de entrega, logo e o
+ * telefone do WhatsApp que recebe os pedidos. Editável pelo gestor, sem
+ * precisar redeployar — antes isso vinha fixo do código/variável de ambiente.
+ */
+export interface StoreBranding {
+  name: string;
+  message: string;
+  eta: string;
+  logo: string;
+  whatsappNumber: string;
+}
 /** Uma "foto" completa do catálogo, do estoque e dos pedidos. É o que a fonte de dados carrega e salva. */
 export interface CatalogSnapshot {
   products: BaseProduct[];
@@ -90,6 +102,7 @@ export interface CatalogSnapshot {
   movements: StockMovement[];
   orders: PlacedOrder[];
   drivers: StoreDriver[];
+  branding: StoreBranding;
 }
 export interface CartItem {
   skuId: string;

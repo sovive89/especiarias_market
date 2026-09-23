@@ -21,6 +21,7 @@ import type {
   CatalogSnapshot,
   PlacedOrder,
   PlacedOrderStatus,
+  StoreBranding,
   StoreDriver,
 } from "@/types/marketplace";
 import * as rules from "@/services/catalog/rules";
@@ -55,6 +56,9 @@ type CatalogState = CatalogSnapshot & {
   deleteDriver: (id: string) => void;
   /** Confere telefone + PIN; usado só na tela de login do entregador. */
   verifyDriverPin: (phone: string, pin: string) => StoreDriver;
+  updateBranding: (input: StoreBranding) => void;
+  /** Zera insumos e histórico de movimentação, sem tocar no cardápio/pedidos/entregadores. */
+  resetInventory: () => void;
   resetDemo: () => void;
   /** Aplica várias regras de uma vez: se qualquer uma recusar, nada é gravado. */
   transaction: (fn: (s: CatalogSnapshot) => CatalogSnapshot) => void;
@@ -166,6 +170,8 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
       setDriverActive: (id, active) => apply((s) => rules.setDriverActive(s, id, active)),
       deleteDriver: (id) => apply((s) => rules.deleteDriver(s, id)),
       verifyDriverPin: (phone, pin) => rules.verifyDriverPin(latest.current, phone, pin),
+      updateBranding: (input) => apply((s) => rules.updateBranding(s, input)),
+      resetInventory: () => apply((s) => rules.resetInventory(s)),
       transaction: (fn) => apply(fn),
       resetDemo: () => {
         resetLocalCatalog();

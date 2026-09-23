@@ -4,11 +4,13 @@ import {
   ClipboardList,
   ExternalLink,
   LayoutDashboard,
+  Settings,
   Truck,
   UtensilsCrossed,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useCatalog } from "@/context/CatalogContext";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 /*
  * Rota "pai" do painel do gestor. Cada aba é uma rota filha (/admin, /admin/pedidos,
@@ -34,6 +36,9 @@ const NAV = [
   { to: "/admin/entregadores", label: "Entregadores", icon: Truck },
 ] as const;
 
+/** Fora do menu principal (não cabe na barra do celular) mas ainda precisa de título no topo. */
+const EXTRA_TITLES: Record<string, string> = { "/admin/config": "Configuração" };
+
 function AdminLayout() {
   const path = useRouterState({ select: (s) => s.location.pathname.replace(/\/$/, "") });
   const { orders, inventory } = useCatalog();
@@ -42,7 +47,7 @@ function AdminLayout() {
   const badge = (to: string) =>
     to === "/admin/pedidos" ? newOrders : to === "/admin/estoque" ? lowStock : 0;
   // O Link do router já marca o item ativo (classe "active"); aqui só pegamos o título.
-  const current = NAV.find((n) => n.to === path) ?? NAV[0];
+  const currentTitle = NAV.find((n) => n.to === path)?.label ?? EXTRA_TITLES[path] ?? NAV[0].label;
 
   // Data só no navegador: no servidor o fuso pode ser outro e a página "pisca" ao carregar.
   const [today, setToday] = useState("");
@@ -78,7 +83,11 @@ function AdminLayout() {
             </Link>
           ))}
         </nav>
-        <a href="/" className="gestor-link mt-auto" target="_blank" rel="noreferrer">
+        <Link to="/admin/config" className="gestor-link mt-auto" activeOptions={{ exact: true }}>
+          <Settings size={19} />
+          Configuração
+        </Link>
+        <a href="/" className="gestor-link" target="_blank" rel="noreferrer">
           <ExternalLink size={19} />
           Ver loja
         </a>
@@ -90,8 +99,16 @@ function AdminLayout() {
             <p className="first-letter:uppercase font-mono text-[10px] text-muted">
               {today || " "}
             </p>
-            <h1 className="truncate text-xl font-extrabold">{current.label}</h1>
+            <h1 className="truncate text-xl font-extrabold">{currentTitle}</h1>
           </div>
+          <ThemeToggle />
+          <Link
+            to="/admin/config"
+            aria-label="Configuração da loja"
+            className="grid size-10 shrink-0 place-items-center rounded-xl bg-muted-surface text-foreground md:hidden"
+          >
+            <Settings size={19} />
+          </Link>
           <a
             href="/"
             target="_blank"
