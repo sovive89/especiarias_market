@@ -25,6 +25,7 @@ import type {
   StoreBranding,
   StoreDriver,
   WhatsAppBotConfig,
+  WhatsAppOrderingConfig,
 } from "@/types/marketplace";
 
 export class CatalogError extends Error {}
@@ -430,6 +431,19 @@ export function setOrderStatus(
   };
 }
 
+/**
+ * Absorve um pedido criado pelo bot conversacional do WhatsApp (fora do navegador, pelo
+ * webhook no servidor) para dentro do catálogo local: baixa o estoque igual a um pedido
+ * do site e adiciona o pedido à fila do gestor. Idempotente — se o mesmo pedido (mesmo id)
+ * já estiver na lista, não duplica nem baixa o estoque de novo.
+ */
+export function absorbWhatsAppOrder(s: CatalogSnapshot, order: PlacedOrder): CatalogSnapshot {
+  if (s.orders.some((o) => o.id === order.id)) return s;
+  const cart: CartItem[] = order.items.map((i) => ({ skuId: i.skuId, quantity: i.quantity }));
+  const withStock = deductSale(s, cart, `Pedido ${order.code} (WhatsApp)`);
+  return { ...withStock, orders: [order, ...withStock.orders] };
+}
+
 /* ───────────── Entregadores ─────────────
  * Cadastro local de quem entrega, com um PIN de 4 dígitos para abrir o app
  * do entregador no próprio celular. É controle de acesso por conveniência
@@ -546,6 +560,31 @@ export function updateWhatsAppBotConfig(
     templates[status as PlacedOrderStatus] = { name, language: language || "pt_BR" };
   }
   return { ...s, whatsappBot: { enabled: input.enabled, templates } };
+}
+
+/* ───────────── Pedido conversacional pelo WhatsApp (sem abrir o site) ───────────── */
+
+/**
+ * Grava a configuração do bot de pedidos: imagem do cardápio numerado, o "número → SKU"
+ * de cada item, e os textos que o bot manda em cada passo da conversa. Igual ao bot de
+ * notificações, isto não mexe em credencial nenhuma.
+ */
+export function updateWhatsAppOrderingConfig(
+  s: CatalogSnapshot,
+  input: WhatsAppOrderingConfig,
+): CatalogSnapshot {
+  const items = input.items
+    .map((i) => ({ number: i.number.trim(), skuId: i.skuId }))
+    .filter((i) => i.number && i.skuId);
+  return {
+    ...s,
+    whatsappOrdering: {
+      enabled: input.enabled,
+      menuImageUrl: input.menuImageUrl,
+      items,
+      messages: input.messages,
+    },
+  };
 }
 
 /* ───────────── Zerar dados ───────────── */

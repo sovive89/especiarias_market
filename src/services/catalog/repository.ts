@@ -8,7 +8,12 @@
  */
 import { inventory, operation } from "@/data/mock";
 import { STORE_WHATSAPP_NUMBER } from "@/config/store";
-import type { CatalogSnapshot, StoreBranding, WhatsAppBotConfig } from "@/types/marketplace";
+import type {
+  CatalogSnapshot,
+  StoreBranding,
+  WhatsAppBotConfig,
+  WhatsAppOrderingConfig,
+} from "@/types/marketplace";
 
 export interface CatalogRepository {
   load(): Promise<CatalogSnapshot>;
@@ -31,6 +36,22 @@ export function defaultWhatsAppBot(): WhatsAppBotConfig {
   return { enabled: false, templates: {} };
 }
 
+/** Pedido pelo WhatsApp desligado, sem cardápio numerado, até o gestor configurar. */
+export function defaultWhatsAppOrdering(): WhatsAppOrderingConfig {
+  return {
+    enabled: false,
+    menuImageUrl: "",
+    items: [],
+    messages: {
+      boasVindas: "Olá! 👋 Aqui está nosso cardápio. Responda com o número do item que quiser.",
+      itemAdicionado: '"{{item}}" adicionado! Quer mais alguma coisa? Envie outro número, ou "fechar" para finalizar.',
+      pedirLocalizacao: "Perfeito! Agora envie sua localização pelo WhatsApp (clipe 📎 → Localização) para a entrega.",
+      pedirPagamento: "Última etapa: qual a forma de pagamento?",
+      confirmacaoFinal: "Pedido {{codigo}} confirmado! Total: {{total}}. Já mandamos para a loja preparar. 🎉",
+    },
+  };
+}
+
 /*
  * v2 = cardápio começa zerado. Quem tinha dados na v1 mantém só o estoque
  * (insumos e histórico); os produtos antigos de exemplo são descartados.
@@ -49,6 +70,7 @@ export function seedSnapshot(): CatalogSnapshot {
     drivers: [],
     branding: defaultBranding(),
     whatsappBot: defaultWhatsAppBot(),
+    whatsappOrdering: defaultWhatsAppOrdering(),
   };
 }
 
@@ -81,12 +103,24 @@ function normalize(x: unknown): CatalogSnapshot | null {
     o["whatsappBot"] && typeof o["whatsappBot"] === "object"
       ? { ...defaultWhatsAppBot(), ...(o["whatsappBot"] as Partial<WhatsAppBotConfig>) }
       : defaultWhatsAppBot();
+  const whatsappOrdering =
+    o["whatsappOrdering"] && typeof o["whatsappOrdering"] === "object"
+      ? {
+          ...defaultWhatsAppOrdering(),
+          ...(o["whatsappOrdering"] as Partial<WhatsAppOrderingConfig>),
+          messages: {
+            ...defaultWhatsAppOrdering().messages,
+            ...((o["whatsappOrdering"] as { messages?: object }).messages ?? {}),
+          },
+        }
+      : defaultWhatsAppOrdering();
   return {
     ...(o as unknown as CatalogSnapshot),
     orders: Array.isArray(o["orders"]) ? (o["orders"] as CatalogSnapshot["orders"]) : [],
     drivers: Array.isArray(o["drivers"]) ? (o["drivers"] as CatalogSnapshot["drivers"]) : [],
     branding,
     whatsappBot,
+    whatsappOrdering,
   };
 }
 

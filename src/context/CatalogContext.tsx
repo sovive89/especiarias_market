@@ -25,6 +25,7 @@ import type {
   StoreBranding,
   StoreDriver,
   WhatsAppBotConfig,
+  WhatsAppOrderingConfig,
 } from "@/types/marketplace";
 import * as rules from "@/services/catalog/rules";
 import {
@@ -32,6 +33,7 @@ import {
   resetLocalCatalog,
   seedSnapshot,
 } from "@/services/catalog/repository";
+import { pullWhatsAppOrders, syncWhatsAppCatalogMirror } from "@/lib/whatsappOrderingSync";
 
 type CatalogState = CatalogSnapshot & {
   loaded: boolean;
@@ -62,6 +64,7 @@ type CatalogState = CatalogSnapshot & {
   updateDriverLocation: (driverId: string, location: DriverGpsPosition) => void;
   updateBranding: (input: StoreBranding) => void;
   updateWhatsAppBotConfig: (input: WhatsAppBotConfig) => void;
+  updateWhatsAppOrderingConfig: (input: WhatsAppOrderingConfig) => void;
   /** Zera insumos e histórico de movimentação, sem tocar no cardápio/pedidos/entregadores. */
   resetInventory: () => void;
   resetDemo: () => void;
@@ -98,6 +101,24 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
     };
   }, [repo]);
 
+  /**
+   * Manda pro servidor (Vercel KV) uma "foto" do cardápio numerado + config do bot,
+   * pra o webhook do WhatsApp conseguir responder sem depender do localStorage de
+   * ninguém. "Melhor esforço": se falhar (offline, KV não configurado), não trava a
+   * tela nem mostra erro — o bot de pedidos simplesmente fica desatualizado até o
+   * próximo save funcionar.
+   */
+  const syncWhatsAppMirror = useCallback((s: CatalogSnapshot) => {
+    syncWhatsAppCatalogMirror({
+      data: {
+        ordering: s.whatsappOrdering,
+        skus: s.skus.map((sku) => ({ id: sku.id, name: sku.name, price: sku.price })),
+      },
+    }).catch(() => {
+      /* melhor esforço — ver comentário acima */
+    });
+  }, []);
+
   /** Aplica uma regra sobre o estado mais recente e salva. Erros de regra sobem para a tela. */
   const apply = useCallback(
     (fn: (s: CatalogSnapshot) => CatalogSnapshot) => {
@@ -106,11 +127,42 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
       setSnapshot(next);
       repo
         .save(next)
-        .then(() => setSaveError(null))
+        .then(() => {
+          setSaveError(null);
+          syncWhatsAppMirror(next);
+        })
         .catch((e: unknown) => setSaveError(e instanceof Error ? e.message : String(e)));
     },
-    [repo],
+    [repo, syncWhatsAppMirror],
   );
+
+  /**
+   * A cada 15s (só enquanto o bot estiver ligado), puxa pedidos que o bot criou pelo
+   * WhatsApp e absorve no catálogo local: baixa estoque e entra na fila de /admin/pedidos,
+   * igual um pedido do site. absorbWhatsAppOrder é idempotente, então não duplica.
+   */
+  useEffect(() => {
+    if (!loaded || !latest.current.whatsappOrdering.enabled) return;
+    let alive = true;
+    const poll = async () => {
+      try {
+        const { orders } = await pullWhatsAppOrders();
+        if (!alive || !orders.length) return;
+        for (const raw of orders) {
+          const order = JSON.parse(raw) as PlacedOrder;
+          apply((s) => rules.absorbWhatsAppOrder(s, order));
+        }
+      } catch {
+        /* melhor esforço — tenta de novo no próximo intervalo */
+      }
+    };
+    poll();
+    const interval = window.setInterval(poll, 15000);
+    return () => {
+      alive = false;
+      window.clearInterval(interval);
+    };
+  }, [loaded, snapshot.whatsappOrdering.enabled, apply]);
 
   const value = useMemo<CatalogState>(
     () => ({
@@ -179,6 +231,8 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
         apply((s) => rules.updateDriverLocation(s, driverId, location)),
       updateBranding: (input) => apply((s) => rules.updateBranding(s, input)),
       updateWhatsAppBotConfig: (input) => apply((s) => rules.updateWhatsAppBotConfig(s, input)),
+      updateWhatsAppOrderingConfig: (input) =>
+        apply((s) => rules.updateWhatsAppOrderingConfig(s, input)),
       resetInventory: () => apply((s) => rules.resetInventory(s)),
       transaction: (fn) => apply(fn),
       resetDemo: () => {

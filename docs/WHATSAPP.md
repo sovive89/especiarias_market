@@ -70,8 +70,8 @@ aprovado** pela Meta — não dá para mandar texto livre.
    {{1}}, seu pedido {{2}} saiu para entrega! Chega em breve. 🛵
    ```
 6. Envie para aprovação. Geralmente sai em minutos, às vezes até 24h. Repita para cada etapa que
-   quiser notificar (preparo, pronto, saiu para entrega, cancelado — ou só as que fizerem sentido
-   para sua loja).
+   quiser notificar (pedido recebido, preparo, pronto, saiu para entrega, entregue, cancelado — ou
+   só as que fizerem sentido para sua loja).
 
 ## Passo 6 — Configurar no Vercel
 
@@ -110,9 +110,63 @@ a mensagem automaticamente pelo WhatsApp oficial da loja.
 Meta cobra por mensagem de template enviada (o valor varia por país). Mensagens de resposta dentro
 de uma conversa já aberta pelo cliente (24h) não usam template e costumam ser gratuitas.
 
-**O bot responde o cliente?** Não — esta versão só **envia avisos automáticos**. Se o cliente
-responder, cai no WhatsApp normal da loja (o mesmo número, aberto no celular/WhatsApp Business App
-de quem atende), não neste sistema.
+**O bot responde o cliente?** O bot de notificações (Passos 1–7 acima) não — ele só **envia avisos
+automáticos** quando o pedido muda de etapa. Mas o app também tem um segundo bot, opcional,
+**conversacional**: o cliente pode fazer o pedido inteiro dentro do próprio WhatsApp, sem abrir o
+site. Ele é configurado à parte — veja a seção seguinte.
 
 **Posso usar meu número de WhatsApp pessoal?** Não. Um número que entra na Cloud API não pode mais
 ser usado no app comum do WhatsApp nem no WhatsApp Business App — use um número novo, só para isso.
+
+## Bot conversacional (pedido 100% dentro do WhatsApp) — opcional
+
+Além do bot de notificações acima, o app tem um bot **conversacional**: o cliente manda uma
+mensagem, recebe o cardápio numerado, responde com os números dos itens que quer, manda a
+localização pelo botão nativo do WhatsApp e escolhe a forma de pagamento — tudo sem sair da
+conversa. Ao final, um pedido de verdade é criado (com baixa de estoque) e aparece em
+`/admin/pedidos`, igual um pedido feito pelo site.
+
+Esse bot usa dois pedaços extras de infraestrutura, além do que já foi configurado acima:
+
+### 1. Vercel KV (memória do bot entre uma mensagem e outra)
+
+O webhook da Meta chama o servidor direto — não existe "navegador" nesse momento, então o app
+precisa de um lugar para lembrar em que ponto da conversa cada cliente está. Isso usa o **Vercel
+KV**, e é a única parte do sistema que sai do localStorage (o resto do app continua 100% sem banco
+de dados).
+
+1. No painel do projeto na Vercel, vá em **Storage** → **Create Database** → **KV**.
+2. Dê um nome (ex.: `mercado-pronto-whatsapp`) e conecte ao projeto.
+3. A Vercel injeta automaticamente as variáveis `KV_REST_API_URL` e `KV_REST_API_TOKEN` — não
+   precisa copiar nada manualmente.
+4. Refaça o deploy para as variáveis valerem.
+
+### 2. Webhook (a Meta avisando o app de mensagens novas)
+
+1. No app da Meta (developers.facebook.com/apps → seu app → produto **WhatsApp** →
+   **Configuração**), procure a seção **Webhook**.
+2. **Callback URL:** `https://<seu-domínio-vercel>/api/whatsapp/webhook`
+3. **Verify Token:** invente uma senha qualquer (ex.: gere uma string aleatória) e cole também na
+   variável de ambiente `WHATSAPP_WEBHOOK_VERIFY_TOKEN` no painel da Vercel — os dois valores
+   precisam ser idênticos.
+4. Clique em **Verificar e salvar**. Se a URL e o token baterem, a Meta confirma na hora.
+5. Em **Campos do Webhook**, clique em **Assinar** no campo **messages**.
+
+### 3. Configurar o cardápio e ligar o bot
+
+1. Acesse `/admin/whatsapp` no painel do gestor e role até **"Pedido pelo WhatsApp (sem abrir o
+   site)"**.
+2. Suba uma **imagem do cardápio numerado** (você mesmo cria essa imagem — o app não gera
+   automaticamente).
+3. Em **"Número → item do catálogo"**, cadastre cada número da imagem apontando para o item real
+   do catálogo (é assim que o bot entende "3" como sendo, por exemplo, "Arroz 5kg").
+4. Revise as 5 mensagens do bot (boas-vindas, item adicionado, pedir localização, pedir pagamento,
+   confirmação final) — são texto livre e editável, sem precisar de aprovação da Meta, porque quem
+   inicia a conversa é sempre o cliente.
+5. Ative a chave **"Pedido conversacional ligado"** e clique em **Salvar**.
+
+Pronto — a partir daí, qualquer mensagem que chegar no número da loja entra nesse fluxo
+automaticamente.
+
+**O cliente precisa ter o site ou cadastro?** Não — o telefone é o único identificador do cliente
+(nome e última localização ficam guardados para agilizar o próximo pedido).

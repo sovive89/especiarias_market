@@ -44,9 +44,19 @@ function isH3SwallowedErrorBody(body: string): boolean {
   }
 }
 
+async function tryHandleWhatsAppWebhook(request: Request): Promise<Response | null> {
+  const url = new URL(request.url);
+  const { isWhatsAppWebhookRequest, handleWhatsAppWebhook } =
+    await import("./server/whatsapp/webhook");
+  if (!isWhatsAppWebhookRequest(url)) return null;
+  return handleWhatsAppWebhook(request, url);
+}
+
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      const webhookResponse = await tryHandleWhatsAppWebhook(request);
+      if (webhookResponse) return webhookResponse;
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);

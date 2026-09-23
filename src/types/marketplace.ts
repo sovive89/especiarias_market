@@ -67,6 +67,8 @@ export interface PlacedOrder {
   paymentMethod: string;
   status: PlacedOrderStatus;
   updatedAt: string;
+  /** De onde veio o pedido. Ausente = "site" (pedidos antigos, de antes desse campo existir). */
+  source?: "site" | "whatsapp";
 }
 /**
  * Entregador cadastrado pelo gestor. O PIN é uma trava de organização local
@@ -122,6 +124,35 @@ export interface WhatsAppBotConfig {
   enabled: boolean;
   templates: Partial<Record<PlacedOrderStatus, WhatsAppTemplate>>;
 }
+/**
+ * Um item do cardápio numerado que o bot manda por imagem: "número → SKU real do catálogo".
+ * É assim que o bot entende o que o cliente quis dizer quando ele responde só o número.
+ */
+export interface WhatsAppMenuItem {
+  number: string;
+  skuId: string;
+}
+/**
+ * Textos do bot conversacional (pedido feito 100% dentro do WhatsApp, sem abrir o site).
+ * Diferente do WhatsAppBotConfig (notificações de status): aqui é o CLIENTE que inicia a
+ * conversa, então a Meta não exige template aprovado — o texto é livre e editável aqui.
+ * {{nome}}, {{total}} e {{codigo}} são trocados pelo valor real na hora de enviar.
+ */
+export interface WhatsAppOrderingMessages {
+  boasVindas: string;
+  itemAdicionado: string;
+  pedirLocalizacao: string;
+  pedirPagamento: string;
+  confirmacaoFinal: string;
+}
+/** Configuração do pedido conversacional pelo WhatsApp (cliente pede sem abrir o site). */
+export interface WhatsAppOrderingConfig {
+  enabled: boolean;
+  /** Imagem do cardápio numerado que o gestor sobe aqui (data URL). */
+  menuImageUrl: string;
+  items: WhatsAppMenuItem[];
+  messages: WhatsAppOrderingMessages;
+}
 /** Uma "foto" completa do catálogo, do estoque e dos pedidos. É o que a fonte de dados carrega e salva. */
 export interface CatalogSnapshot {
   products: BaseProduct[];
@@ -132,6 +163,7 @@ export interface CatalogSnapshot {
   drivers: StoreDriver[];
   branding: StoreBranding;
   whatsappBot: WhatsAppBotConfig;
+  whatsappOrdering: WhatsAppOrderingConfig;
 }
 export interface CartItem {
   skuId: string;
