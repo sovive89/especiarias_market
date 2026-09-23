@@ -1,0 +1,10 @@
+{
+  "name": "Especiarias Market — Entregador",
+  "short_name": "Entregador",
+  "start_url": "/driver/home",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#111827",
+  "lang": "pt-BR",
+  "icons": []
+}
