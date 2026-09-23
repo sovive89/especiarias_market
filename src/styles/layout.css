@@ -1,0 +1,182 @@
+/* ——— Moldura do app ——— */
+.app {
+  min-height: 100dvh;
+  padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
+}
+
+.page {
+  width: 100%;
+  max-width: var(--app-width);
+  margin-inline: auto;
+  padding: 1.25rem 1rem 2rem;
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+}
+
+/* ——— Cabeçalho (mesmo do marketplace) ——— */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-strong);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+.topbar__inner {
+  max-width: 72rem;
+  margin-inline: auto;
+  height: var(--topbar-height);
+  padding-inline: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.logo {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: none;
+  border-radius: var(--radius);
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-weight: 800;
+}
+
+.topbar__brand {
+  flex: 1;
+  min-width: 0;
+}
+
+.topbar__brand p:first-child {
+  font-weight: 800;
+  line-height: 1;
+}
+
+.topbar__brand p + p {
+  margin-top: 0.25rem;
+  font-size: 0.68rem;
+}
+
+.text-success {
+  color: var(--success);
+}
+
+.text-primary {
+  color: var(--primary);
+}
+
+.topbar__nav {
+  display: none;
+  gap: 0.25rem;
+}
+
+.nav-pill {
+  border-radius: var(--radius);
+  padding: 0.65rem 0.8rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.nav-pill:hover {
+  background: var(--muted-surface);
+  color: var(--foreground);
+}
+
+.nav-pill.is-active {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.topbar__counter,
+.avatar {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: none;
+  border-radius: var(--radius);
+  background: var(--muted-surface);
+  font-weight: 800;
+}
+
+.topbar__badge {
+  position: absolute;
+  top: -0.25rem;
+  right: -0.25rem;
+  display: grid;
+  place-items: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding-inline: 0.25rem;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-foreground);
+  font-size: 0.65rem;
+  font-weight: 800;
+}
+
+.avatar {
+  border-radius: 999px;
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+/* ——— Navegação inferior (celular) ——— */
+.bottom-nav {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 30;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  border-top: 1px solid var(--border);
+  background: var(--surface-strong);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  padding: 0.4rem 0.5rem max(0.5rem, env(safe-area-inset-bottom));
+}
+
+.bottom-nav__item {
+  display: flex;
+  min-width: 0;
+  min-height: 3.25rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  border-radius: var(--radius);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.bottom-nav__item.is-active {
+  color: var(--primary);
+  background: var(--primary-soft);
+}
+
+/* ——— Desktop: navegação vai para o topo, como no marketplace ——— */
+@media (min-width: 768px) {
+  .app {
+    padding-bottom: 0;
+  }
+
+  .topbar__nav {
+    display: flex;
+  }
+
+  .bottom-nav {
+    display: none;
+  }
+
+  .page {
+    padding-top: 2rem;
+  }
+}

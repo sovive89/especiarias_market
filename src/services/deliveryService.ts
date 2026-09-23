@@ -1,7 +1,11 @@
-import { mockApi } from "./mockApi";
+import type { DeliveryProblem } from "../types/delivery";
+import { dataSource } from "./dataSource";
+
 export const deliveryService = {
-  start: (id: string) => mockApi.startDelivery(id),
-  arrived: (id: string) => mockApi.arrived(id),
-  complete: (id: string) => mockApi.complete(id),
-  problem: (id: string) => mockApi.problem(id)
+  list: () => dataSource.getDeliveries(),
+  events: () => dataSource.getEvents(),
+  start: (id: string) => dataSource.startDelivery(id),
+  arrived: (id: string) => dataSource.arrived(id),
+  complete: (id: string) => dataSource.complete(id),
+  reportProblem: (problem: DeliveryProblem) => dataSource.problem(problem)
 };

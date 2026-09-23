@@ -19,6 +19,13 @@ export interface Delivery {
 }
 export interface Route { id: string; driverId: string; status: RouteStatus; startedAt?: string; finishedAt?: string; totalStops: number; }
 export interface RouteStop { deliveryId: string; sequence: number; }
-export interface DeliveryEvent { id: string; deliveryId: string; driverId: string; type: string; createdAt: string; latitude?: number; longitude?: number; }
+export type DeliveryEventType =
+  | "ROUTE_STARTED"
+  | "ROUTE_FINISHED"
+  | "DELIVERY_STARTED"
+  | "DELIVERY_ARRIVED"
+  | "DELIVERY_COMPLETED"
+  | "DELIVERY_PROBLEM";
+export interface DeliveryEvent { id: string; deliveryId: string; driverId: string; type: DeliveryEventType; createdAt: string; latitude?: number; longitude?: number; }
 export interface DeliveryProblem { deliveryId: string; type: DeliveryProblemType; description: string; }
 export interface TrackingPosition { deliveryId: string; driverId: string; latitude: number; longitude: number; accuracy: number; timestamp: string; }
