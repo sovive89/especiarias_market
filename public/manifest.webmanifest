@@ -1,10 +1,12 @@
 {
-  "name": "Especiarias Market — Entregador",
-  "short_name": "Entregador",
-  "start_url": "/driver/home",
-  "display": "standalone",
-  "background_color": "#f8fafc",
-  "theme_color": "#111827",
-  "lang": "pt-BR",
-  "icons": []
+  "name":"Especiarias Market — Entregador",
+  "short_name":"Entregador",
+  "start_url":"/",
+  "scope":"/",
+  "display":"standalone",
+  "background_color":"#f8f9f7",
+  "theme_color":"#1d5b3d",
+  "lang":"pt-BR",
+  "description":"PWA operacional exclusiva para entregadores da Especiarias Market.",
+  "icons":[]
 }
