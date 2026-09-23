@@ -4,13 +4,16 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
+import { useCatalog } from "@/context/CatalogContext";
 import { hasProblem, isDone, isOpen, type NextStep } from "../constants/delivery";
 import { deliveryService } from "../services/deliveryService";
 import { driverService } from "../services/driverService";
 import { routeService } from "../services/routeService";
+import { trackingService } from "../services/trackingService";
 import type {
   Delivery,
   DeliveryEvent,
@@ -19,6 +22,9 @@ import type {
   Route,
 } from "../types/delivery";
 import { useDriverAuth, type DriverIdentity } from "./DriverAuthContext";
+
+/** Intervalo mínimo entre gravações de GPS no catálogo (o watch do navegador dispara bem mais rápido). */
+const LOCATION_SAVE_INTERVAL_MS = 15000;
 
 /*
  * Contexto = um "estado global" que qualquer tela pode ler com useDriver().
@@ -50,6 +56,11 @@ interface DriverState {
   routeFinished: boolean;
   logout: () => void;
 
+  /** Se o GPS do aparelho está sendo compartilhado agora (enquanto disponível/em rota). */
+  sharingLocation: boolean;
+  /** Mensagem em português quando o navegador nega/erra a localização; null quando está tudo certo. */
+  locationError: string | null;
+
   selected: Delivery | undefined;
   sheet: SheetMode | null;
   openDelivery: (id: string) => void;
@@ -75,6 +86,7 @@ export function DriverProvider({
   identity: DriverIdentity;
 }) {
   const { logout } = useDriverAuth();
+  const catalog = useCatalog();
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -84,6 +96,47 @@ export function DriverProvider({
   const [events, setEvents] = useState<DeliveryEvent[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [sheet, setSheet] = useState<SheetMode | null>(null);
+  const [sharingLocation, setSharingLocation] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
+
+  // Ref em vez de dependência direta: catalog.updateDriverLocation troca de identidade a cada
+  // gravação (o próprio catálogo mudou), e não queremos isso religando o GPS o tempo todo.
+  const updateLocationRef = useRef(catalog.updateDriverLocation);
+  updateLocationRef.current = catalog.updateDriverLocation;
+  const lastSavedAtRef = useRef(0);
+
+  // Liga o GPS do aparelho enquanto o entregador estiver "disponível" (online) e desliga
+  // ao pausar/deslogar — é a mesma trava de "disponível para entregas" do botão de energia.
+  const isAvailable = driver != null && driver.status !== "OFFLINE";
+  useEffect(() => {
+    if (!isAvailable) {
+      trackingService.stop();
+      setSharingLocation(false);
+      return;
+    }
+    trackingService.start(
+      route?.id ?? "sem-rota",
+      identity.id,
+      (position) => {
+        setSharingLocation(true);
+        setLocationError(null);
+        const now = Date.now();
+        if (now - lastSavedAtRef.current < LOCATION_SAVE_INTERVAL_MS) return;
+        lastSavedAtRef.current = now;
+        updateLocationRef.current(identity.id, {
+          latitude: position.latitude,
+          longitude: position.longitude,
+          accuracy: position.accuracy,
+          updatedAt: position.timestamp,
+        });
+      },
+      (message) => {
+        setSharingLocation(false);
+        setLocationError(message);
+      },
+    );
+    return () => trackingService.stop();
+  }, [isAvailable, identity.id, route?.id]);
 
   const reload = useCallback(async () => {
     const [d, r, list, ev] = await Promise.all([
@@ -197,6 +250,8 @@ export function DriverProvider({
       routeStarted: route?.status === "IN_PROGRESS",
       routeFinished: route?.status === "COMPLETED",
       logout,
+      sharingLocation,
+      locationError,
 
       selected: deliveries.find((d) => d.id === selectedId),
       sheet,
@@ -230,6 +285,8 @@ export function DriverProvider({
     advance,
     reportProblem,
     logout,
+    sharingLocation,
+    locationError,
   ]);
 
   return <DriverContext.Provider value={value}>{children}</DriverContext.Provider>;

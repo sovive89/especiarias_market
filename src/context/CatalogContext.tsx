@@ -19,6 +19,7 @@ import {
 import type {
   CartItem,
   CatalogSnapshot,
+  DriverGpsPosition,
   PlacedOrder,
   PlacedOrderStatus,
   StoreBranding,
@@ -56,6 +57,8 @@ type CatalogState = CatalogSnapshot & {
   deleteDriver: (id: string) => void;
   /** Confere telefone + PIN; usado só na tela de login do entregador. */
   verifyDriverPin: (phone: string, pin: string) => StoreDriver;
+  /** Grava a posição de GPS enviada pelo próprio celular do entregador. */
+  updateDriverLocation: (driverId: string, location: DriverGpsPosition) => void;
   updateBranding: (input: StoreBranding) => void;
   /** Zera insumos e histórico de movimentação, sem tocar no cardápio/pedidos/entregadores. */
   resetInventory: () => void;
@@ -170,6 +173,8 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
       setDriverActive: (id, active) => apply((s) => rules.setDriverActive(s, id, active)),
       deleteDriver: (id) => apply((s) => rules.deleteDriver(s, id)),
       verifyDriverPin: (phone, pin) => rules.verifyDriverPin(latest.current, phone, pin),
+      updateDriverLocation: (driverId, location) =>
+        apply((s) => rules.updateDriverLocation(s, driverId, location)),
       updateBranding: (input) => apply((s) => rules.updateBranding(s, input)),
       resetInventory: () => apply((s) => rules.resetInventory(s)),
       transaction: (fn) => apply(fn),

@@ -3,6 +3,7 @@ import {
   CheckCircle2,
   Clock3,
   Flag,
+  LocateFixed,
   MapPin,
   Navigation,
   PackageCheck,
@@ -10,6 +11,7 @@ import {
   Power,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { useCatalog } from "@/context/CatalogContext";
 import { DeliveryCard, StatusBadge } from "../components/delivery/DeliveryCard";
 import { MockMap } from "../components/delivery/MockMap";
 import { NextActionButton } from "../components/delivery/NextActionButton";
@@ -23,7 +25,6 @@ import {
   Surface,
 } from "../components/ui";
 import { isOpen } from "../constants/delivery";
-import { operation } from "@/data/mock";
 import { useDriver } from "../context/DriverContext";
 import { cn } from "../lib/cn";
 import { formatKm, formatToday, greeting, pad2 } from "../lib/format";
@@ -45,11 +46,14 @@ export function HomePage() {
     routeStarted,
     routeFinished,
     busy,
+    sharingLocation,
+    locationError,
     toggleAvailability,
     startRoute,
     finishRoute,
     openDelivery,
   } = useDriver();
+  const { branding } = useCatalog();
   const progress = stats.total ? Math.round((stats.done / stats.total) * 100) : 0;
   const upcoming = deliveries.filter((d) => d.id !== nextDelivery?.id && isOpen(d)).slice(0, 2);
 
@@ -82,7 +86,23 @@ export function HomePage() {
       <Surface className="availability">
         <div>
           <strong>{available ? "Disponível para entregas" : "Entregas pausadas"}</strong>
-          <p className="muted">Localização em tempo real será integrada futuramente.</p>
+          <p className={cn("muted", "availability__gps", locationError && "text-warning")}>
+            {locationError ? (
+              <>
+                <AlertTriangle size={14} aria-hidden /> {locationError}
+              </>
+            ) : sharingLocation ? (
+              <>
+                <LocateFixed size={14} aria-hidden /> Compartilhando sua localização em tempo real.
+              </>
+            ) : available ? (
+              <>
+                <LocateFixed size={14} aria-hidden /> Ativando GPS…
+              </>
+            ) : (
+              "Fique disponível para compartilhar sua localização."
+            )}
+          </p>
         </div>
         <Badge tone={available ? "good" : "neutral"}>{available ? "Online" : "Pausado"}</Badge>
       </Surface>
@@ -166,7 +186,7 @@ export function HomePage() {
             <div>
               <PackageCheck size={20} className="text-primary" aria-hidden />
               <span>
-                <strong>Coleta · {operation.name}</strong>
+                <strong>Coleta · {branding.name}</strong>
                 <small className="muted">{pickupText(nextDelivery.status)}</small>
               </span>
             </div>

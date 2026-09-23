@@ -137,6 +137,10 @@
     color: var(--primary);
   }
 
+  .text-warning {
+    color: var(--warning-foreground);
+  }
+
   .topbar__nav {
     display: none;
     gap: 0.25rem;
@@ -963,6 +967,12 @@
   .availability p {
     margin-top: 0.2rem;
     font-size: 0.8rem;
+  }
+
+  .availability__gps {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
   }
 
   .route-progress {

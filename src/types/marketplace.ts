@@ -81,6 +81,15 @@ export interface StoreDriver {
   pin: string;
   active: boolean;
   createdAt: string;
+  /** Última posição de GPS enviada pelo próprio celular do entregador (opcional). */
+  location?: DriverGpsPosition;
+}
+/** Posição de GPS do aparelho do entregador — não é rastreamento por rota, é a última posição conhecida. */
+export interface DriverGpsPosition {
+  latitude: number;
+  longitude: number;
+  accuracy: number;
+  updatedAt: string;
 }
 /**
  * Identidade da loja no PWA: nome, mensagem, tempo de entrega, logo e o

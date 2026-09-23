@@ -6,8 +6,8 @@
  * É uma trava de organização (sem servidor) — o PIN fica salvo no navegador do
  * gestor, então não é segurança "de banco"; serve para separar quem é quem.
  */
-import { useState } from "react";
-import { Bike, Eye, EyeOff, Pencil, Plus, Trash2, Truck } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Bike, Eye, EyeOff, MapPin, Pencil, Plus, Trash2, Truck } from "lucide-react";
 import { Button } from "@/components/ui";
 import { useCatalog } from "@/context/CatalogContext";
 import * as rules from "@/services/catalog/rules";
@@ -17,11 +17,29 @@ import { IconButton } from "./StockAdmin";
 
 const errorText = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
+/** "há 5 min", recalculado a cada 30 s — mesma ideia do painel de pedidos. */
+function useNow() {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const t = window.setInterval(() => setNow(Date.now()), 30_000);
+    return () => window.clearInterval(t);
+  }, []);
+  return now;
+}
+function ago(iso: string, now: number) {
+  const min = Math.max(0, Math.round((now - new Date(iso).getTime()) / 60_000));
+  if (min < 1) return "agora";
+  if (min < 60) return `há ${min} min`;
+  const h = Math.floor(min / 60);
+  return h < 24 ? `há ${h} h` : new Date(iso).toLocaleDateString("pt-BR");
+}
+
 export function DriversAdmin() {
   const { drivers } = useCatalog();
   const [editing, setEditing] = useState<StoreDriver | "new" | null>(null);
   const [error, setError] = useState("");
   const catalog = useCatalog();
+  const now = useNow();
 
   const remove = (d: StoreDriver) => {
     setError("");
@@ -79,6 +97,7 @@ export function DriversAdmin() {
             <DriverCard
               key={d.id}
               driver={d}
+              now={now}
               onEdit={() => setEditing(d)}
               onToggle={() => toggle(d)}
               onDelete={() => remove(d)}
@@ -100,11 +119,13 @@ export function DriversAdmin() {
 
 function DriverCard({
   driver: d,
+  now,
   onEdit,
   onToggle,
   onDelete,
 }: {
   driver: StoreDriver;
+  now: number;
   onEdit: () => void;
   onToggle: () => void;
   onDelete: () => void;
@@ -141,6 +162,28 @@ function DriverCard({
         >
           {showPin ? <EyeOff size={16} /> : <Eye size={16} />}
         </button>
+      </div>
+
+      <div className="mt-3 flex items-center justify-between gap-2 rounded-xl bg-surface-strong px-3 py-2 text-sm">
+        {d.location ? (
+          <>
+            <span className="flex items-center gap-1.5 text-muted">
+              <MapPin size={15} /> Localização {ago(d.location.updatedAt, now)}
+            </span>
+            <a
+              href={`https://www.google.com/maps?q=${d.location.latitude},${d.location.longitude}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-primary hover:underline"
+            >
+              Ver no mapa
+            </a>
+          </>
+        ) : (
+          <span className="flex items-center gap-1.5 text-muted">
+            <MapPin size={15} /> Sem localização ainda — aparece quando ele abrir o app.
+          </span>
+        )}
       </div>
 
       <label className="mt-3 flex items-center justify-between gap-2 text-sm font-semibold">

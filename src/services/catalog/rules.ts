@@ -15,6 +15,7 @@ import type {
   BaseProduct,
   CartItem,
   CatalogSnapshot,
+  DriverGpsPosition,
   InventoryItem,
   PlacedOrder,
   PlacedOrderItem,
@@ -482,6 +483,23 @@ export function verifyDriverPin(s: CatalogSnapshot, phone: string, pin: string):
   const driver = s.drivers.find((d) => d.phone === clean && d.active);
   if (!driver || driver.pin !== pin.trim()) throw new CatalogError("Telefone ou PIN incorretos.");
   return driver;
+}
+
+/**
+ * Grava a posição de GPS que o próprio celular do entregador enviou (navigator.geolocation).
+ * Silenciosa quando o entregador já não existe mais (ex.: gestor apagou o cadastro
+ * enquanto o app do entregador ainda estava aberto) — não é um erro de tela, só ignora.
+ */
+export function updateDriverLocation(
+  s: CatalogSnapshot,
+  driverId: string,
+  location: DriverGpsPosition,
+): CatalogSnapshot {
+  if (!s.drivers.some((d) => d.id === driverId)) return s;
+  return {
+    ...s,
+    drivers: s.drivers.map((d) => (d.id === driverId ? { ...d, location } : d)),
+  };
 }
 
 /* ───────────── Identidade da loja (branding) ───────────── */
